@@ -1,0 +1,2 @@
+server-role: "sender" # или "receiver"
+receiver-port: 5555

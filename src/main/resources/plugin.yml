@@ -1,5 +1,11 @@
-name: '$pluginName'
-version: '$version'
-main: ru.joutak.template.EmptyPlugin
+name: '$BuildersPlots'
+version: '$alpha-0.1'
+main: ru.joutak.template.BuildersPlots
 api-version: '1.21.4'
+author: Kostyamops
 depend: [ 'KotlinPlugins' ] # don't remove KotlinPlugin dependency
+commands:
+  bp:
+    description: Проверка работы плагина BuildersPlots
+  buildersplots:
+    description: Проверка работы плагина BuildersPlots
