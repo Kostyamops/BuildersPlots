@@ -1,2 +1,12 @@
-server-role: "sender" # или "receiver"
-receiver-port: 5555
+# BuildersPlots Configuration
+
+# Server role: 'sender' for the main gameplay server, 'receiver' for the test server
+server-role: "sender"
+
+# Network settings
+receiver-host: "localhost"  # IP address of the receiver server
+receiver-port: 5555         # Port for the receiver server to listen on
+sender-port: 5556           # Port for the sender server to listen on
+
+# Storage settings
+plots-directory: "plots"    # Directory to store plot data (relative to plugin folder)

@@ -1,11 +1,21 @@
-name: '$BuildersPlots'
-version: '$alpha-0.1'
-main: ru.joutak.template.BuildersPlots
+name: ${pluginName}
+version: ${version}
+main: ru.joutak.buildersplots.BuildersPlots
 api-version: '1.21.4'
-author: Kostyamops
-depend: [ 'KotlinPlugins' ] # don't remove KotlinPlugin dependency
+authors: [Kostyamops]
+description: Plot synchronization system for builders
+folia-supported: true
 commands:
   bp:
-    description: Проверка работы плагина BuildersPlots
-  buildersplots:
-    description: Проверка работы плагина BuildersPlots
+    description: BuildersPlots main command
+    usage: /bp [create|list|tp|add|remove|delete|sync]
+    permission: buildersplots.use
+permissions:
+  buildersplots.use:
+    description: Allows using BuildersPlots commands
+    default: true
+  buildersplots.admin:
+    description: Allows administering BuildersPlots
+    default: op
+    children:
+      buildersplots.use: true
