@@ -1,36 +1,43 @@
 package ru.joutak.buildersplots
 
 import org.bukkit.plugin.java.JavaPlugin
+import ru.joutak.buildersplots.commands.CommandManager
 import ru.joutak.buildersplots.config.PluginConfig
-import ru.joutak.buildersplots.manager.CommandManager
+import ru.joutak.buildersplots.i18n.Messages
 import ru.joutak.buildersplots.manager.PlotManager
 import ru.joutak.buildersplots.network.NetworkManager
 import ru.joutak.buildersplots.network.ServerRole
 
 class BuildersPlots : JavaPlugin() {
 
-    // Инициализация с null значениями вместо lateinit
+    // Использование private свойств с getters для избежания проблем с инициализацией
     private var _config: PluginConfig? = null
     private var _plotManager: PlotManager? = null
     private var _networkManager: NetworkManager? = null
-
-    // Свойства с геттерами для безопасного доступа
+    private var _messages: Messages? = null
+    
     val config: PluginConfig
-        get() = _config ?: throw IllegalStateException("Config has not been initialized")
-
+        get() = _config ?: throw IllegalStateException("Config not initialized")
+    
     val plotManager: PlotManager
-        get() = _plotManager ?: throw IllegalStateException("PlotManager has not been initialized")
-
+        get() = _plotManager ?: throw IllegalStateException("PlotManager not initialized")
+    
     val networkManager: NetworkManager
-        get() = _networkManager ?: throw IllegalStateException("NetworkManager has not been initialized")
+        get() = _networkManager ?: throw IllegalStateException("NetworkManager not initialized")
+    
+    val messages: Messages
+        get() = _messages ?: throw IllegalStateException("Messages not initialized")
 
     override fun onEnable() {
         try {
-            // Сначала сохраняем дефолтный конфиг
+            // Сначала сохраняем дефолтные конфиги
             saveDefaultConfig()
-
+            saveResource("messages_en.yml", false)
+            saveResource("messages_ru.yml", false)
+            
             // Инициализация компонентов
             _config = PluginConfig(this)
+            _messages = Messages(this)
             _plotManager = PlotManager(this)
             _networkManager = NetworkManager(this)
 
@@ -40,21 +47,21 @@ class BuildersPlots : JavaPlugin() {
             // Запуск сетевых сервисов в зависимости от роли сервера
             when (_config?.serverRole) {
                 ServerRole.SENDER -> {
-                    logger.info("Starting BuildersPlots in SENDER mode")
-                    registerSenderListeners()
+                    logger.info("[BuildersPlots] Starting in SENDER mode")
+                    _networkManager?.startSender()
                 }
                 ServerRole.RECEIVER -> {
-                    logger.info("Starting BuildersPlots in RECEIVER mode")
-                    registerReceiverListeners()
+                    logger.info("[BuildersPlots] Starting in RECEIVER mode")
+                    _networkManager?.startReceiver()
                 }
                 else -> {
-                    logger.warning("Unknown server role, plugin may not function correctly")
+                    logger.warning("[BuildersPlots] Unknown server role, plugin may not function correctly")
                 }
             }
 
-            logger.info("BuildersPlots has been enabled!")
+            logger.info("[BuildersPlots] Plugin enabled successfully!")
         } catch (e: Exception) {
-            logger.severe("Failed to enable BuildersPlots: ${e.message}")
+            logger.severe("[BuildersPlots] Failed to enable plugin: ${e.message}")
             e.printStackTrace()
             server.pluginManager.disablePlugin(this)
         }
@@ -66,28 +73,12 @@ class BuildersPlots : JavaPlugin() {
             _networkManager?.shutdown()
 
             // Сохранение данных плотов
-            if (_config?.serverRole == ServerRole.RECEIVER) {
-                _plotManager?.savePlots()
-            }
+            _plotManager?.savePlots()
 
-            logger.info("BuildersPlots has been disabled!")
+            logger.info("[BuildersPlots] Plugin disabled!")
         } catch (e: Exception) {
-            logger.severe("Error during plugin shutdown: ${e.message}")
+            logger.severe("[BuildersPlots] Error during plugin shutdown: ${e.message}")
             e.printStackTrace()
         }
-    }
-
-    private fun registerSenderListeners() {
-        server.pluginManager.registerEvents(
-            ru.joutak.buildersplots.listener.BlockChangeListener(this),
-            this
-        )
-    }
-
-    private fun registerReceiverListeners() {
-        server.pluginManager.registerEvents(
-            ru.joutak.buildersplots.listener.PlotInteractionListener(this),
-            this
-        )
     }
 }

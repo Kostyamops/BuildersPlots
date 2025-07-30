@@ -1,8 +1,9 @@
 package ru.joutak.buildersplots.config
 
+import org.bukkit.configuration.file.FileConfiguration
 import ru.joutak.buildersplots.BuildersPlots
 import ru.joutak.buildersplots.network.ServerRole
-import java.lang.reflect.Method
+import java.io.File
 
 class PluginConfig(private val plugin: BuildersPlots) {
 
@@ -11,45 +12,60 @@ class PluginConfig(private val plugin: BuildersPlots) {
     val senderPort: Int
     val receiverHost: String
     val plotsDirectory: String
+    val language: String
+    val debugMode: Boolean
+    val maxPlotWidth: Int
+    val maxPlotHeight: Int
+    val maxPlotLength: Int
+    val autoSaveInterval: Int
 
     init {
         // Используем getConfig() из JavaPlugin вместо свойства config
         val config = plugin.getConfig()
-
-        // Получение методов
-        val getStringMethod: Method = config.javaClass.getMethod("getString", String::class.java)
-        val getStringDefaultMethod: Method = config.javaClass.getMethod("getString", String::class.java, String::class.java)
-        val getIntMethod: Method = config.javaClass.getMethod("getInt", String::class.java, Int::class.javaPrimitiveType)
-
+        
         // Load server role
-        val roleString = getStringDefaultMethod.invoke(config, "server-role", "sender") as String
+        val roleString = config.getString("server-role", "SENDER")
         serverRole = try {
-            ServerRole.valueOf(roleString.uppercase())
+            ServerRole.valueOf(roleString?.uppercase() ?: "SENDER")
         } catch (e: IllegalArgumentException) {
-            plugin.logger.warning("Invalid server role: $roleString. Defaulting to SENDER.")
+            plugin.logger.warning("[BuildersPlots] Invalid server role: $roleString. Defaulting to SENDER.")
             ServerRole.SENDER
         }
 
         // Load network settings
-        receiverPort = getIntMethod.invoke(config, "receiver-port", 5555) as Int
-        senderPort = getIntMethod.invoke(config, "sender-port", 5556) as Int
+        receiverPort = config.getInt("receiver-port", 5555)
+        senderPort = config.getInt("sender-port", 5556)
+        receiverHost = config.getString("receiver-host") ?: "localhost"
 
-        val receiverHostObj = getStringMethod.invoke(config, "receiver-host")
-        receiverHost = receiverHostObj?.toString() ?: "localhost"
+        // Load language setting
+        language = config.getString("language") ?: "en"
 
-        val plotsDirObj = getStringMethod.invoke(config, "plots-directory")
-        plotsDirectory = plotsDirObj?.toString() ?: "plots"
+        // Load storage settings
+        plotsDirectory = config.getString("plots-directory") ?: "plots"
+        
+        // Load max plot size
+        maxPlotWidth = config.getInt("max-plot-size.width", 256)
+        maxPlotHeight = config.getInt("max-plot-size.height", 256)
+        maxPlotLength = config.getInt("max-plot-size.length", 256)
+        
+        // Load auto-save interval
+        autoSaveInterval = config.getInt("auto-save-interval", 30)
+        
+        // Load debug mode
+        debugMode = config.getBoolean("debug-mode", false)
 
-        // Create plots directory if it doesn't exist (on receiver)
-        if (serverRole == ServerRole.RECEIVER) {
-            val plotsDir = plugin.dataFolder.resolve(plotsDirectory)
-            if (!plotsDir.exists()) {
-                plotsDir.mkdirs()
-            }
+        // Create plots directory if it doesn't exist
+        val plotsDir = File(plugin.dataFolder, plotsDirectory)
+        if (!plotsDir.exists()) {
+            plotsDir.mkdirs()
         }
-    }
-
-    fun saveDefaultConfig() {
-        plugin.saveDefaultConfig()
+        
+        // Log configuration
+        if (debugMode) {
+            plugin.logger.info("[BuildersPlots] Configuration loaded:")
+            plugin.logger.info("[BuildersPlots] Server role: $serverRole")
+            plugin.logger.info("[BuildersPlots] Language: $language")
+            plugin.logger.info("[BuildersPlots] Network: $receiverHost:$receiverPort/$senderPort")
+        }
     }
 }

@@ -1,12 +1,27 @@
 # BuildersPlots Configuration
 
-# Server role: 'sender' for the main gameplay server, 'receiver' for the test server
-server-role: "sender"
+# Language: ru (Russian) or en (English)
+language: "ru"
+
+# Server role: SENDER (test server) or RECEIVER (main server)
+server-role: "SENDER"
 
 # Network settings
-receiver-host: "localhost"  # IP address of the receiver server
-receiver-port: 5555         # Port for the receiver server to listen on
-sender-port: 5556           # Port for the sender server to listen on
+receiver-host: "localhost"
+receiver-port: 5555
+sender-port: 5556
 
-# Storage settings
-plots-directory: "plots"    # Directory to store plot data (relative to plugin folder)
+# Maximum plot size (in blocks)
+max-plot-size:
+  width: 256
+  height: 256
+  length: 256
+
+# Auto-save interval (in minutes)
+auto-save-interval: 30
+
+# Directory for storing plots
+plots-directory: "plots"
+
+# Debug mode (additional logs)
+debug-mode: false

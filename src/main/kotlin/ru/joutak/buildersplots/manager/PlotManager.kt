@@ -1,221 +1,264 @@
 package ru.joutak.buildersplots.manager
 
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
-import org.bukkit.Bukkit
 import org.bukkit.Location
-import org.bukkit.World
-import org.bukkit.WorldCreator
 import org.bukkit.entity.Player
 import ru.joutak.buildersplots.BuildersPlots
-import ru.joutak.buildersplots.model.BlockChange
 import ru.joutak.buildersplots.model.Plot
-import ru.joutak.buildersplots.model.PlotCreationRequest
-import ru.joutak.buildersplots.network.ServerRole
+import ru.joutak.buildersplots.util.SchematicUtil
 import java.io.File
-import java.io.FileReader
-import java.io.FileWriter
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
 import java.util.*
-import java.util.concurrent.ConcurrentHashMap
+import kotlin.collections.HashMap
 
 class PlotManager(private val plugin: BuildersPlots) {
 
-    private val plots = ConcurrentHashMap<String, Plot>()
-    private val gson: Gson = GsonBuilder().setPrettyPrinting().create()
+    private val plots = HashMap<String, Plot>()
+    private val playerSelections = HashMap<UUID, Pair<Location?, Location?>>()
+    private val plotsDir = File(plugin.dataFolder, plugin.config.plotsDirectory)
 
     init {
-        if (plugin.config.serverRole == ServerRole.RECEIVER) {
-            loadPlots()
-        }
-    }
-
-    fun createPlot(request: PlotCreationRequest) {
-        if (plugin.config.serverRole != ServerRole.RECEIVER) {
-            plugin.logger.warning("Cannot create plot on sender server")
-            return
-        }
-
-        // Generate a unique ID for this plot
-        val plotId = UUID.randomUUID().toString().substring(0, 8)
-
-        // Create a new plot instance
-        val plot = Plot(
-            id = plotId,
-            name = request.plotName,
-            owner = request.owner,
-            originWorld = request.worldName,
-            originX = request.x,
-            originY = request.y,
-            originZ = request.z,
-            radius = request.radius
-        )
-
-        // Create a new world for this plot
-        val plotWorldName = "plot_$plotId"
-        val worldCreator = WorldCreator(plotWorldName)
-        val plotWorld = worldCreator.createWorld()
-
-        if (plotWorld != null) {
-            // Clone the region from the main world (this would need to be done via network)
-            // For now, we'll just create an empty world
-            plotWorld.setSpawnLocation(0, 100, 0)
-
-            // Store the plot
-            plots[plotId] = plot
-            savePlot(plot)
-
-            plugin.logger.info("Created new plot: ${plot.name} (ID: $plotId)")
-        } else {
-            plugin.logger.severe("Failed to create world for plot: ${plot.name}")
-        }
-    }
-
-    fun getPlot(id: String): Plot? {
-        return plots[id]
-    }
-
-    fun getPlotByWorld(worldName: String): Plot? {
-        val plotId = worldName.removePrefix("plot_")
-        return plots[plotId]
-    }
-
-    fun getPlotForLocation(location: Location): Plot? {
-        val worldName = location.world.name
-        if (!worldName.startsWith("plot_")) return null
-
-        val plotId = worldName.removePrefix("plot_")
-        val plot = plots[plotId] ?: return null
-
-        return if (plot.containsLocation(location)) plot else null
-    }
-
-    fun getPlayerPlots(player: Player): List<Plot> {
-        return plots.values.filter {
-            it.owner == player.uniqueId ||
-                    it.members.contains(player.uniqueId) ||
-                    player.isOp
-        }
-    }
-
-    fun applyBlockChange(change: BlockChange) {
-        if (plugin.config.serverRole != ServerRole.RECEIVER) {
-            return
-        }
-
-        // Find all plots that correspond to this block change
-        val affectedPlots = plots.values.filter { plot ->
-            if (!plot.syncEnabled) return@filter false
-
-            val minX = plot.originX - plot.radius
-            val maxX = plot.originX + plot.radius
-            val minZ = plot.originZ - plot.radius
-            val maxZ = plot.originZ + plot.radius
-
-            plot.originWorld == change.worldName &&
-                    change.x in minX..maxX &&
-                    change.z in minZ..maxZ
-        }
-
-        // Apply the change to each affected plot
-        for (plot in affectedPlots) {
-            val plotWorld = Bukkit.getWorld("plot_${plot.id}") ?: continue
-
-            // Calculate the relative position in the plot world
-            val relativeX = change.x - (plot.originX - plot.radius)
-            val relativeY = change.y
-            val relativeZ = change.z - (plot.originZ - plot.radius)
-
-            // Set the block
-            val location = Location(plotWorld, relativeX.toDouble(), relativeY.toDouble(), relativeZ.toDouble())
-            val blockData = Bukkit.createBlockData(change.blockData)
-            location.block.blockData = blockData
-        }
-    }
-
-    fun deletePlot(plotId: String): Boolean {
-        val plot = plots.remove(plotId) ?: return false
-
-        // Delete the plot's world
-        val plotWorld = Bukkit.getWorld("plot_${plot.id}")
-        if (plotWorld != null) {
-            // Teleport any players in this world to the main world
-            val mainWorld = Bukkit.getWorlds()[0]
-            plotWorld.players.forEach { player ->
-                player.teleport(mainWorld.spawnLocation)
-            }
-
-            // Unload and delete the world
-            Bukkit.unloadWorld(plotWorld, false)
-
-            // Delete the world directory
-            val worldDir = File(Bukkit.getWorldContainer(), "plot_${plot.id}")
-            if (worldDir.exists()) {
-                worldDir.deleteRecursively()
-            }
-        }
-
-        // Delete the plot file
-        val plotFile = File(plugin.dataFolder, "${plugin.config.plotsDirectory}/${plot.id}.json")
-        if (plotFile.exists()) {
-            plotFile.delete()
-        }
-
-        return true
-    }
-
-    fun savePlots() {
-        plots.values.forEach { savePlot(it) }
-    }
-
-    private fun savePlot(plot: Plot) {
-        val plotsDir = File(plugin.dataFolder, plugin.config.plotsDirectory)
         if (!plotsDir.exists()) {
             plotsDir.mkdirs()
         }
+        loadPlots()
 
-        val plotFile = File(plotsDir, "${plot.id}.json")
-        FileWriter(plotFile).use { writer ->
-            gson.toJson(plot, writer)
+        // Настраиваем автосохранение (совместимо с Folia)
+        setupAutoSave()
+    }
+
+    /**
+     * Настраивает автоматическое сохранение плотов
+     * с поддержкой Folia и обычных серверов
+     */
+    private fun setupAutoSave() {
+        try {
+            // Интервал в тиках (20 тиков в секунду)
+            val intervalTicks = plugin.config.autoSaveInterval.toLong() * 20 * 60
+
+            // Используем globalRegionScheduler для Folia
+            plugin.server.globalRegionScheduler.runAtFixedRate(plugin, { _ ->
+                savePlots()
+                plugin.logger.info("[BuildersPlots] Auto-saving plots...")
+            }, 20 * 60, intervalTicks) // Первый запуск через минуту, затем по расписанию
+
+            plugin.logger.info("[BuildersPlots] Auto-save scheduled with Folia scheduler every ${plugin.config.autoSaveInterval} minutes")
+        } catch (e: Throwable) {
+            plugin.logger.warning("[BuildersPlots] Failed to setup Folia auto-save: ${e.message}")
+            plugin.logger.warning("[BuildersPlots] Will use manual saves only")
+
+            // Будем полагаться на ручное сохранение при выключении плагина
+            // и на сохранение при операциях с плотами
         }
     }
 
     private fun loadPlots() {
-        val plotsDir = File(plugin.dataFolder, plugin.config.plotsDirectory)
-        if (!plotsDir.exists()) {
-            plotsDir.mkdirs()
-            return
-        }
-
-        plotsDir.listFiles { file -> file.isFile && file.extension == "json" }?.forEach { file ->
+        var loadedCount = 0
+        plotsDir.listFiles()?.filter { it.name.endsWith(".plot") }?.forEach { file ->
             try {
-                FileReader(file).use { reader ->
-                    val plot = gson.fromJson(reader, Plot::class.java)
-                    plots[plot.id] = plot
-
-                    // Make sure the plot world is loaded
-                    val worldName = "plot_${plot.id}"
-                    if (Bukkit.getWorld(worldName) == null) {
-                        val worldCreator = WorldCreator(worldName)
-                        worldCreator.createWorld()
+                ObjectInputStream(FileInputStream(file)).use { ois ->
+                    val plot = ois.readObject() as Plot
+                    plots[plot.name.lowercase()] = plot
+                    loadedCount++
+                    if (plugin.config.debugMode) {
+                        plugin.logger.info("[BuildersPlots] Loaded plot: ${plot.name}")
                     }
                 }
             } catch (e: Exception) {
-                plugin.logger.warning("Failed to load plot from file ${file.name}: ${e.message}")
+                plugin.logger.warning("[BuildersPlots] Failed to load plot file ${file.name}: ${e.message}")
             }
         }
-
-        plugin.logger.info("Loaded ${plots.size} plots")
+        plugin.logger.info("[BuildersPlots] Loaded $loadedCount plots")
     }
 
-    fun togglePlotSync(plotId: String): Boolean {
-        val plot = plots[plotId] ?: return false
+    fun savePlots() {
+        var savedCount = 0
+        plots.values.forEach { plot ->
+            try {
+                val file = File(plotsDir, "${plot.name}.plot")
+                ObjectOutputStream(FileOutputStream(file)).use { oos ->
+                    oos.writeObject(plot)
+                    savedCount++
+                }
+            } catch (e: Exception) {
+                plugin.logger.warning("[BuildersPlots] Failed to save plot ${plot.name}: ${e.message}")
+            }
+        }
+        if (plugin.config.debugMode) {
+            plugin.logger.info("[BuildersPlots] Saved $savedCount plots")
+        }
+    }
 
-        if (!plot.syncEnabled) {
-            return false // Can't re-enable sync
+    // Method for creating a plot
+    fun createPlot(player: Player, name: String): Plot? {
+        // Проверка на существование плота
+        if (plotExists(name)) {
+            player.sendMessage(plugin.messages.get("general.plot-exists"))
+            return null
         }
 
-        plot.disableSync()
+        // Получаем выделение игрока
+        val selection = playerSelections[player.uniqueId]
+        if (selection == null || selection.first == null || selection.second == null) {
+            player.sendMessage(plugin.messages.get("commands.create-usage"))
+            return null
+        }
+
+        val pos1 = selection.first!!
+        val pos2 = selection.second!!
+
+        // Проверка, что точки в одном мире
+        if (pos1.world?.name != pos2.world?.name) {
+            player.sendMessage(plugin.messages.get("general.selection-different-worlds"))
+            return null
+        }
+
+        // Определяем координаты
+        val minX = minOf(pos1.blockX, pos2.blockX)
+        val minY = minOf(pos1.blockY, pos2.blockY)
+        val minZ = minOf(pos1.blockZ, pos2.blockZ)
+        val maxX = maxOf(pos1.blockX, pos2.blockX)
+        val maxY = maxOf(pos1.blockY, pos2.blockY)
+        val maxZ = maxOf(pos1.blockZ, pos2.blockZ)
+
+        // Проверка на максимальный размер
+        val width = maxX - minX + 1
+        val height = maxY - minY + 1
+        val length = maxZ - minZ + 1
+
+        if (width > plugin.config.maxPlotWidth ||
+            height > plugin.config.maxPlotHeight ||
+            length > plugin.config.maxPlotLength) {
+            player.sendMessage(plugin.messages.get("general.plot-too-large",
+                plugin.config.maxPlotWidth,
+                plugin.config.maxPlotHeight,
+                plugin.config.maxPlotLength))
+            return null
+        }
+
+        // Вычисляем центр плота
+        val centerX = (minX + maxX) / 2.0
+        val centerY = (minY + maxY) / 2.0
+        val centerZ = (minZ + maxZ) / 2.0
+
+        // Создаем новый плот
+        val plot = Plot(
+            id = UUID.randomUUID(),
+            name = name,
+            owner = player.uniqueId,
+            createdAt = System.currentTimeMillis(),
+            minX = minX,
+            minY = minY,
+            minZ = minZ,
+            maxX = maxX,
+            maxY = maxY,
+            maxZ = maxZ,
+            worldName = pos1.world?.name ?: "world",
+            centerX = centerX,
+            centerY = centerY,
+            centerZ = centerZ,
+            yaw = player.location.yaw,
+            pitch = player.location.pitch
+        )
+
+        // Сохраняем плот
+        plots[name.lowercase()] = plot
         savePlot(plot)
+
+        // Логируем информацию
+        plugin.logger.info("[BuildersPlots] Player ${player.name} created plot $name (${width}x${height}x${length})")
+
+        // Сохраняем схематику плота, если включен debug режим
+        if (plugin.config.debugMode) {
+            val schematicFile = File(plotsDir, "${name}.schematic")
+            SchematicUtil.saveSchematic(plot, schematicFile)
+            plugin.logger.info("[BuildersPlots] Saved schematic for plot $name")
+        }
+
+        return plot
+    }
+
+    // Method for creating a plot from network
+    fun createPlot(plot: Plot) {
+        plots[plot.name.lowercase()] = plot
+        savePlot(plot)
+        plugin.logger.info("[BuildersPlots] Created plot ${plot.name} from network")
+    }
+
+    private fun savePlot(plot: Plot) {
+        try {
+            val file = File(plotsDir, "${plot.name}.plot")
+            ObjectOutputStream(FileOutputStream(file)).use { oos ->
+                oos.writeObject(plot)
+            }
+        } catch (e: Exception) {
+            plugin.logger.warning("[BuildersPlots] Failed to save plot ${plot.name}: ${e.message}")
+        }
+    }
+
+    fun getPlots(): List<Plot> = plots.values.toList()
+
+    fun getPlotByName(name: String): Plot? = plots[name.lowercase()]
+
+    fun plotExists(name: String): Boolean = plots.containsKey(name.lowercase())
+
+    fun deletePlot(name: String): Boolean {
+        val plot = plots.remove(name.lowercase()) ?: return false
+        val file = File(plotsDir, "${plot.name}.plot")
+        if (file.exists()) {
+            file.delete()
+        }
+        plugin.logger.info("[BuildersPlots] Deleted plot ${plot.name}")
         return true
+    }
+
+    // Методы для работы с выделением области
+    fun setFirstPoint(player: Player, location: Location) {
+        val current = playerSelections[player.uniqueId]
+        playerSelections[player.uniqueId] = Pair(location, current?.second)
+
+        // Отправляем сообщение
+        player.sendMessage(plugin.messages.get("plot.selection-first",
+            location.blockX, location.blockY, location.blockZ))
+
+        // Проверяем, завершено ли выделение
+        checkSelectionComplete(player)
+    }
+
+    fun setSecondPoint(player: Player, location: Location) {
+        val current = playerSelections[player.uniqueId]
+        playerSelections[player.uniqueId] = Pair(current?.first, location)
+
+        // Отправляем сообщение
+        player.sendMessage(plugin.messages.get("plot.selection-second",
+            location.blockX, location.blockY, location.blockZ))
+
+        // Проверяем, завершено ли выделение
+        checkSelectionComplete(player)
+    }
+
+    private fun checkSelectionComplete(player: Player) {
+        val selection = playerSelections[player.uniqueId] ?: return
+        if (selection.first != null && selection.second != null) {
+            val pos1 = selection.first!!
+            val pos2 = selection.second!!
+
+            // Вычисляем размеры
+            val width = Math.abs(pos1.blockX - pos2.blockX) + 1
+            val height = Math.abs(pos1.blockY - pos2.blockY) + 1
+            val length = Math.abs(pos1.blockZ - pos2.blockZ) + 1
+
+            player.sendMessage(plugin.messages.get("plot.selection-complete", width, height, length))
+        }
+    }
+
+    fun getPlayerSelection(player: Player): Pair<Location?, Location?> {
+        return playerSelections[player.uniqueId] ?: Pair(null, null)
+    }
+
+    fun clearPlayerSelection(player: Player) {
+        playerSelections.remove(player.uniqueId)
     }
 }

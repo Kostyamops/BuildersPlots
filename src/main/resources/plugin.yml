@@ -1,21 +1,13 @@
-name: ${pluginName}
-version: ${version}
+name: BuildersPlots
+version: '${version}'
 main: ru.joutak.buildersplots.BuildersPlots
-api-version: '1.21.4'
-authors: [Kostyamops]
-description: Plot synchronization system for builders
+api-version: '1.21'
+authors: [joutak]
+description: 'Plugin for transferring builds between servers'
 folia-supported: true
+
 commands:
   bp:
     description: BuildersPlots main command
-    usage: /bp [create|list|tp|add|remove|delete|sync]
-    permission: buildersplots.use
-permissions:
-  buildersplots.use:
-    description: Allows using BuildersPlots commands
-    default: true
-  buildersplots.admin:
-    description: Allows administering BuildersPlots
-    default: op
-    children:
-      buildersplots.use: true
+    usage: "/<command> [create|list|tp|info|ping|delete]"
+    aliases: [buildersplots, plots]
