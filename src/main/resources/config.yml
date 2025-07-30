@@ -1,27 +1,22 @@
 # BuildersPlots Configuration
 
-# Language: ru (Russian) or en (English)
-language: "ru"
+server:
+  # Set to true for the main gameplay server (sender)
+  # Set to false for the test server (receiver)
+  isMainServer: false
+  
+  # IP address of the target server
+  targetServerIp: "localhost"
+  
+  # Port for sending data
+  sendPort: 25566
+  
+  # Port for receiving data
+  receivePort: 25567
 
-# Server role: SENDER (test server) or RECEIVER (main server)
-server-role: "SENDER"
-
-# Network settings
-receiver-host: "localhost"
-receiver-port: 5555
-sender-port: 5556
-
-# Maximum plot size (in blocks)
-max-plot-size:
-  width: 256
-  height: 256
-  length: 256
-
-# Auto-save interval (in minutes)
-auto-save-interval: 30
-
-# Directory for storing plots
-plots-directory: "plots"
-
-# Debug mode (additional logs)
-debug-mode: false
+plots:
+  # Name of the world where plots will be created (on test server)
+  worldName: "plots"
+  
+  # Maximum plot size (radius)
+  maxPlotSize: 200

@@ -1,13 +1,20 @@
 name: BuildersPlots
-version: '${version}'
-main: ru.joutak.buildersplots.BuildersPlots
-api-version: '1.21'
-authors: [joutak]
-description: 'Plugin for transferring builds between servers'
+version: 1.0.0
+main: com.kostyamops.buildersplots.BuildersPlots
+api-version: 1.21
+description: A plugin for syncing building plots between main and test servers
+author: Kostyamops
 folia-supported: true
-
 commands:
   bp:
-    description: BuildersPlots main command
-    usage: "/<command> [create|list|tp|info|ping|delete]"
-    aliases: [buildersplots, plots]
+    description: BuildersPlots commands
+    usage: /bp <subcommand>
+    aliases: [buildersplots]
+    permission: buildersplots.use
+permissions:
+  buildersplots.use:
+    description: Allows using basic BuildersPlots commands
+    default: true
+  buildersplots.admin:
+    description: Allows using administrative BuildersPlots commands
+    default: op
