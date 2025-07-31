@@ -1,28 +1,13 @@
 name: BuildersPlots
-version: 1.0.0
+version: '${version}'
 main: com.kostyamops.buildersplots.BuildersPlots
-api-version: 1.21
-description: A plugin for syncing building plots between main and test servers
-author: Kostyamops
+api-version: '1.21'
+description: Plot synchronization between main and test servers
 folia-supported: true
+author: Kostyamops
 commands:
   bp:
-    description: BuildersPlots commands
-    usage: /bp <subcommand>
-    aliases: [buildersplots]
+    description: BuildersPlots main command
+    usage: /<command> [create|list|delete] [args...]
     permission: buildersplots.use
-  bpdiag:
-    description: Runs diagnostic tests for BuildersPlots
-    usage: /bpdiag
-    permission: buildersplots.admin
-  bptest:
-    description: Sends a test packet to test network connectivity
-    usage: /bptest
-    permission: buildersplots.admin
-permissions:
-  buildersplots.use:
-    description: Allows using basic BuildersPlots commands
-    default: true
-  buildersplots.admin:
-    description: Allows using administrative BuildersPlots commands
-    default: op
+    aliases: [buildersplots]

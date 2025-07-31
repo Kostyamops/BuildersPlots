@@ -1,22 +1,24 @@
 # BuildersPlots Configuration
 
-server:
-  # Set to true for the main gameplay server (sender)
-  # Set to false for the test server (receiver)
-  isMainServer: false
-  
-  # IP address of the target server
-  targetServerIp: "localhost"
-  
-  # Port for sending data
-  sendPort: 25566
-  
-  # Port for receiving data
-  receivePort: 25567
+# Server type (main or test)
+server-type: "main"
 
+# Password for inter-server communication (MUST be the same on both servers)
+server-password: "change_this_password_to_something_secure"
+
+# Communication settings
+communication:
+  # Local IP address for server communication
+  ip: "localhost"
+  port: 25567
+
+# Plot settings
 plots:
-  # Name of the world where plots will be created (on test server)
-  worldName: "plots"
-  
-  # Maximum plot size (radius)
-  maxPlotSize: 200
+  # Maximum radius allowed for plots
+  max-radius: 100
+  # Default world for plots on main server
+  main-world: "world"
+  # World prefix for plot worlds on test server
+  test-world-prefix: "plot_"
+
+world-creation-command: "mv create %world% normal -g flat"

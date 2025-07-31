@@ -1,77 +1,94 @@
 package com.kostyamops.buildersplots
 
-import com.kostyamops.buildersplots.commands.CommandManager
-import com.kostyamops.buildersplots.commands.DiagnosticCommand
-import com.kostyamops.buildersplots.commands.TestPacketCommand
-import com.kostyamops.buildersplots.config.ConfigManager
-import com.kostyamops.buildersplots.listeners.BlockListener
-import com.kostyamops.buildersplots.network.NetworkManager
-import com.kostyamops.buildersplots.network.ServerConnection
-import com.kostyamops.buildersplots.plots.PlotManager
+import com.kostyamops.buildersplots.commands.BuildersPlotsCommand
+import com.kostyamops.buildersplots.data.PlotManager
+import com.kostyamops.buildersplots.listeners.BlockChangeListener
+import com.kostyamops.buildersplots.network.ServerCommunicationManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.bukkit.plugin.java.JavaPlugin
-import java.util.logging.Level
+import java.io.File
 
 class BuildersPlots : JavaPlugin() {
-    companion object {
-        lateinit var instance: BuildersPlots
-            private set
-    }
 
-    lateinit var configManager: ConfigManager
-        private set
     lateinit var plotManager: PlotManager
-        private set
-    lateinit var networkManager: NetworkManager
-        private set
-    lateinit var serverConnection: ServerConnection
-        private set
+    lateinit var communicationManager: ServerCommunicationManager
+    lateinit var serverType: ServerType
+
+    private val pluginScope = CoroutineScope(Dispatchers.IO)
 
     override fun onEnable() {
-        instance = this
-        
-        // Create plugin directory if it doesn't exist
-        if (!dataFolder.exists()) {
-            dataFolder.mkdirs()
-        }
-        
-        // Initialize components
-        configManager = ConfigManager(this)
-        configManager.loadConfig()
-        
-        plotManager = PlotManager(this)
-        
-        networkManager = NetworkManager(this)
-        serverConnection = ServerConnection(this, 
-            configManager.sendPort, 
-            configManager.receivePort, 
-            configManager.isMainServer)
-        
-        // Register listeners
-        if (configManager.isMainServer) {
-            server.pluginManager.registerEvents(BlockListener(this), this)
-        }
-        
-        // Register commands
-        CommandManager(this).registerCommands()
-        
-        // Start network connection
-        serverConnection.startConnection()
-        getCommand("bpdiag")?.setExecutor(DiagnosticCommand(this))
-        getCommand("bptest")?.setExecutor(TestPacketCommand(this))
+        try {
+            // Save default config
+            saveDefaultConfig()
 
-        logger.info("BuildersPlots has been enabled!")
-        logger.info("Running as ${if (configManager.isMainServer) "SENDER (Main Server)" else "RECEIVER (Test Server)"}")
+            // Log plugin info
+            logger.info("Enabling BuildersPlots v${description.version}")
+
+            // Load server type
+            val serverTypeStr = config.getString("server-type", "main")
+            serverType = try {
+                ServerType.valueOf(serverTypeStr!!.uppercase())
+            } catch (e: IllegalArgumentException) {
+                logger.warning("Invalid server type: $serverTypeStr. Defaulting to MAIN.")
+                ServerType.MAIN
+            }
+
+            logger.info("Starting BuildersPlots as ${serverType.name} server")
+
+            // Initialize data directory
+            val dataDir = File(dataFolder, "plots")
+            if (!dataDir.exists()) {
+                dataDir.mkdirs()
+            }
+
+            // Initialize managers
+            plotManager = PlotManager(this)
+            communicationManager = ServerCommunicationManager(this)
+            server.pluginManager.registerEvents(BlockChangeListener(this), this)
+
+            // Register commands
+            getCommand("bp")?.setExecutor(BuildersPlotsCommand(this))
+
+            // Register listeners
+            server.pluginManager.registerEvents(BlockChangeListener(this), this)
+
+            // Start network communication
+            pluginScope.launch {
+                communicationManager.startCommunication()
+            }
+
+            logger.info("BuildersPlots plugin enabled!")
+        } catch (e: Exception) {
+            logger.severe("Error enabling BuildersPlots: ${e.message}")
+            e.printStackTrace()
+            server.pluginManager.disablePlugin(this)
+        }
     }
 
     override fun onDisable() {
-        // Close connection and save data
-        serverConnection.stopConnection()
-        plotManager.savePlots()
-        
-        logger.info("BuildersPlots has been disabled!")
+        try {
+            // Save plot data
+            if (::plotManager.isInitialized) {
+                plotManager.savePlots()
+            }
+
+            // Stop communication
+            if (::communicationManager.isInitialized) {
+                pluginScope.launch {
+                    communicationManager.stopCommunication()
+                }
+            }
+
+            logger.info("BuildersPlots plugin disabled!")
+        } catch (e: Exception) {
+            logger.severe("Error disabling BuildersPlots: ${e.message}")
+            e.printStackTrace()
+        }
     }
-    
-    fun log(message: String, level: Level = Level.INFO) {
-        logger.log(level, message)
-    }
+}
+
+enum class ServerType {
+    MAIN, TEST
 }
