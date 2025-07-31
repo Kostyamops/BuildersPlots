@@ -1,5 +1,7 @@
 package com.kostyamops.buildersplots.network.packets
 
+import java.io.Serializable
+
 data class BlockChangePacket(
     val world: String,
     val x: Int,
@@ -7,4 +9,8 @@ data class BlockChangePacket(
     val z: Int,
     val material: String,
     val blockData: String
-) : Packet
+) : Packet, Serializable {
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+}

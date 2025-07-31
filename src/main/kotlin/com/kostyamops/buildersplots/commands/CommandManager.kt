@@ -35,36 +35,36 @@ class CommandManager(private val plugin: BuildersPlots) : CommandExecutor, TabCo
                     sender.sendMessage("§cThis command can only be used on the main server!")
                     return true
                 }
-                
+
                 if (sender !is Player) {
                     sender.sendMessage("§cOnly players can use this command!")
                     return true
                 }
-                
+
                 if (args.size < 3) {
                     sender.sendMessage("§cUsage: /bp create <name> <radius>")
                     return true
                 }
-                
+
                 val name = args[1]
                 val radius = args[2].toIntOrNull()
-                
+
                 if (radius == null || radius <= 0) {
                     sender.sendMessage("§cRadius must be a positive number!")
                     return true
                 }
-                
+
                 if (radius > plugin.configManager.maxPlotSize) {
                     sender.sendMessage("§cRadius cannot exceed ${plugin.configManager.maxPlotSize}!")
                     return true
                 }
-                
+
                 val location = sender.location
                 val centerX = location.blockX
                 val centerZ = location.blockZ
-                
-                // Create plot on main server
-                val plot = plugin.plotManager.createPlot(
+
+                // Используем новый метод с начальной синхронизацией
+                val plot = plugin.plotManager.createPlotWithInitialSync(
                     name = name,
                     originalWorld = location.world.name,
                     centerX = centerX,
@@ -72,24 +72,16 @@ class CommandManager(private val plugin: BuildersPlots) : CommandExecutor, TabCo
                     radius = radius,
                     creatorUuid = sender.uniqueId
                 )
-                
+
                 if (plot != null) {
-                    // Send plot creation to test server
-                    val plotData = mapOf(
-                        "name" to name,
-                        "originalWorld" to location.world.name,
-                        "centerX" to centerX,
-                        "centerZ" to centerZ,
-                        "radius" to radius,
-                        "creatorUuid" to sender.uniqueId.toString()
-                    )
-                    
-                    plugin.networkManager.sendPlotManagement("CREATE", plotData)
-                    
-                    sender.sendMessage("§aCreated plot §e$name §awith radius §e$radius§a!")
-                    sender.sendMessage("§7Center: §e$centerX, $centerZ")
+                    // Больше не нужно отправлять отдельный пакет CREATE, так как
+                    // createPlotWithInitialSync уже делает это и добавляет синхронизацию
+
+                    sender.sendMessage("§aСоздан плот §e$name §aс радиусом §e$radius§a! Началась синхронизация блоков.")
+                    sender.sendMessage("§7Центр: §e$centerX, $centerZ")
+                    sender.sendMessage("§7Плот будет полностью скопирован на тестовый сервер.")
                 } else {
-                    sender.sendMessage("§cFailed to create plot! See console for details.")
+                    sender.sendMessage("§cНе удалось создать плот! Проверьте логи сервера.")
                 }
             }
             "list" -> {
@@ -97,11 +89,35 @@ class CommandManager(private val plugin: BuildersPlots) : CommandExecutor, TabCo
                     sender.sendMessage("§cOnly players can use this command!")
                     return true
                 }
-                
-                // Open the plot selection menu
-                plugin.server.scheduler.runTask(plugin, Runnable {
-                    PlotSelectionMenu(plugin).open(sender)
-                })
+
+                try {
+                    // Логгируем для отладки
+                    plugin.log("Открываем меню выбора плотов для ${sender.name}")
+
+                    // Сначала проверяем, есть ли плоты вообще
+                    val plots = plugin.plotManager.getAllPlots()
+                    if (plots.isEmpty()) {
+                        sender.sendMessage("§cНет доступных плотов. Создайте новый плот с помощью /bp create.")
+                        return true
+                    }
+
+                    // Открываем меню
+                    plugin.server.globalRegionScheduler.execute(plugin, Runnable {
+                        try {
+                            PlotSelectionMenu(plugin).open(sender)
+                        } catch (e: Exception) {
+                            plugin.log("Ошибка при открытии меню: ${e.message}")
+                            e.printStackTrace()
+                            sender.sendMessage("§cОшибка при открытии меню. Подробности в логах сервера.")
+                        }
+                    })
+                } catch (e: Exception) {
+                    plugin.log("Ошибка при обработке команды list: ${e.message}")
+                    e.printStackTrace()
+                    sender.sendMessage("§cПроизошла ошибка. Подробности в логах сервера.")
+                }
+
+                return true
             }
             "delete" -> {
                 if (sender !is Player && args.size < 2) {

@@ -11,6 +11,14 @@ commands:
     usage: /bp <subcommand>
     aliases: [buildersplots]
     permission: buildersplots.use
+  bpdiag:
+    description: Runs diagnostic tests for BuildersPlots
+    usage: /bpdiag
+    permission: buildersplots.admin
+  bptest:
+    description: Sends a test packet to test network connectivity
+    usage: /bptest
+    permission: buildersplots.admin
 permissions:
   buildersplots.use:
     description: Allows using basic BuildersPlots commands

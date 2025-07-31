@@ -1,6 +1,8 @@
 package com.kostyamops.buildersplots
 
 import com.kostyamops.buildersplots.commands.CommandManager
+import com.kostyamops.buildersplots.commands.DiagnosticCommand
+import com.kostyamops.buildersplots.commands.TestPacketCommand
 import com.kostyamops.buildersplots.config.ConfigManager
 import com.kostyamops.buildersplots.listeners.BlockListener
 import com.kostyamops.buildersplots.network.NetworkManager
@@ -54,7 +56,9 @@ class BuildersPlots : JavaPlugin() {
         
         // Start network connection
         serverConnection.startConnection()
-        
+        getCommand("bpdiag")?.setExecutor(DiagnosticCommand(this))
+        getCommand("bptest")?.setExecutor(TestPacketCommand(this))
+
         logger.info("BuildersPlots has been enabled!")
         logger.info("Running as ${if (configManager.isMainServer) "SENDER (Main Server)" else "RECEIVER (Test Server)"}")
     }
