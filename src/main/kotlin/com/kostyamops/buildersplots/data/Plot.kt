@@ -8,7 +8,8 @@ data class Plot(
     val radius: Int,
     val center: PlotLocation,
     val creatorUUID: UUID,
-    val creationTime: Long = System.currentTimeMillis()
+    val creationTime: Long = System.currentTimeMillis(),
+
 ) {
     // Default constructor for serialization/deserialization
     constructor() : this("", 0, PlotLocation("", 0.0, 0.0, 0.0), UUID.randomUUID(), 0L)
@@ -33,8 +34,14 @@ data class Plot(
     }
 
     // Get test world name for this plot
+    fun getTestWorldName(plugin: com.kostyamops.buildersplots.BuildersPlots): String {
+        val worldPrefix = plugin.config.getString("plot-world-prefix", "plot_")
+        return worldPrefix + name.lowercase().replace(" ", "_")
+    }
+
     fun getTestWorldName(): String {
-        return "plot_${name.lowercase().replace(" ", "_")}"
+        // Используем значение по умолчанию, если плагин недоступен
+        return "plot_" + name.lowercase().replace(" ", "_")
     }
 }
 

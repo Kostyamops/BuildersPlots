@@ -43,13 +43,17 @@ class BuildersPlots : JavaPlugin() {
                 dataDir.mkdirs()
             }
 
-            // Initialize managers
             plotManager = PlotManager(this)
             communicationManager = ServerCommunicationManager(this)
             server.pluginManager.registerEvents(BlockChangeListener(this), this)
 
-            // Register commands
             getCommand("bp")?.setExecutor(BuildersPlotsCommand(this))
+
+            if (serverType == ServerType.TEST) {
+                // Загружаем миры плотов и запускаем автосохранение
+                plotManager.loadAllPlotWorlds()
+                plotManager.startAutoSave()
+            }
 
             // Register listeners
             server.pluginManager.registerEvents(BlockChangeListener(this), this)
@@ -80,6 +84,8 @@ class BuildersPlots : JavaPlugin() {
                     communicationManager.stopCommunication()
                 }
             }
+
+            plotManager.shutdown()
 
             logger.info("BuildersPlots plugin disabled!")
         } catch (e: Exception) {

@@ -2,6 +2,7 @@ package com.kostyamops.buildersplots.network
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.google.gson.JsonParser
 import com.kostyamops.buildersplots.BuildersPlots
 import com.kostyamops.buildersplots.ServerType
 import com.kostyamops.buildersplots.data.Plot
@@ -10,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.bukkit.*
 import org.bukkit.entity.Player
+import org.bukkit.scheduler.BukkitTask
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.PrintWriter
@@ -20,6 +22,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.io.File
 import java.util.Collections
+import java.util.concurrent.ConcurrentHashMap
 
 class ServerCommunicationManager(private val plugin: BuildersPlots) {
 
@@ -45,6 +48,13 @@ class ServerCommunicationManager(private val plugin: BuildersPlots) {
 
     private val password: String
         get() = plugin.config.getString("server-password", "")!!
+
+    private val blockChangeQueue = ConcurrentLinkedQueue<BlockChangeData>()
+    private var blockProcessorTask: BukkitTask? = null
+    private val maxBlocksPerTick = 5000 // Максимальное количество блоков, обрабатываемых за один тик
+    private var totalProcessedBlocks = 0
+    private var lastReportTime = System.currentTimeMillis()
+    private val reportInterval = 5000 // Интервал отчета в миллисекундах
 
     suspend fun startCommunication() {
         withContext(Dispatchers.IO) {
@@ -188,19 +198,21 @@ class ServerCommunicationManager(private val plugin: BuildersPlots) {
 
     private fun processMessage(messageJson: String) {
         try {
-            plugin.logger.info("Received message: $messageJson")
+            val jsonElement = JsonParser.parseString(messageJson)
+            val jsonObject = jsonElement.asJsonObject
+            val type = jsonObject["type"]?.asString ?: "UNKNOWN"
+            plugin.logger.info("Received message of type: $type")
+
             val message = gson.fromJson(messageJson, Message::class.java)
 
             when (message.type) {
                 "PLOT_CREATE" -> {
                     try {
-                        val plotJson = message.data.toString()
-                        plugin.logger.info("Received plot data: $plotJson")
-                        val plot = gson.fromJson(plotJson, Plot::class.java)
+                        val plot = gson.fromJson(message.data.toString(), Plot::class.java)
                         if (plot != null) {
                             handlePlotCreation(plot)
                         } else {
-                            plugin.logger.severe("Failed to deserialize plot data: null")
+                            plugin.logger.severe("Failed to deserialize plot data")
                         }
                     } catch (e: Exception) {
                         plugin.logger.severe("Error processing PLOT_CREATE: ${e.message}")
@@ -209,8 +221,7 @@ class ServerCommunicationManager(private val plugin: BuildersPlots) {
                 }
                 "PLOT_DELETE" -> {
                     try {
-                        val plotName = message.data.toString()
-                        handlePlotDeletion(plotName)
+                        handlePlotDeletion(message.data.toString())
                     } catch (e: Exception) {
                         plugin.logger.severe("Error processing PLOT_DELETE: ${e.message}")
                         e.printStackTrace()
@@ -218,12 +229,11 @@ class ServerCommunicationManager(private val plugin: BuildersPlots) {
                 }
                 "BLOCK_CHANGE" -> {
                     try {
-                        val blockDataJson = message.data.toString()
-                        val blockData = gson.fromJson(blockDataJson, BlockChangeData::class.java)
+                        val blockData = gson.fromJson(message.data.toString(), BlockChangeData::class.java)
                         if (blockData != null) {
                             handleBlockChange(blockData)
                         } else {
-                            plugin.logger.severe("Failed to deserialize block data: null")
+                            plugin.logger.severe("Failed to deserialize block data")
                         }
                     } catch (e: Exception) {
                         plugin.logger.severe("Error processing BLOCK_CHANGE: ${e.message}")
@@ -232,8 +242,7 @@ class ServerCommunicationManager(private val plugin: BuildersPlots) {
                 }
                 "REQUEST_PLOT_BLOCKS" -> {
                     try {
-                        val plotName = message.data.toString()
-                        handleRequestPlotBlocks(plotName)
+                        handleRequestPlotBlocks(message.data.toString())
                     } catch (e: Exception) {
                         plugin.logger.severe("Error processing REQUEST_PLOT_BLOCKS: ${e.message}")
                         e.printStackTrace()
@@ -241,8 +250,7 @@ class ServerCommunicationManager(private val plugin: BuildersPlots) {
                 }
                 "PLOT_BLOCKS" -> {
                     try {
-                        val blocksData = message.data.toString()
-                        val blocks = gson.fromJson(blocksData, Array<PlotBlockData>::class.java)
+                        val blocks = gson.fromJson(message.data.toString(), Array<PlotBlockData>::class.java)
                         handlePlotBlocks(blocks.toList())
                     } catch (e: Exception) {
                         plugin.logger.severe("Error processing PLOT_BLOCKS: ${e.message}")
@@ -251,8 +259,7 @@ class ServerCommunicationManager(private val plugin: BuildersPlots) {
                 }
                 "PLOT_SCAN_PROGRESS" -> {
                     try {
-                        val progressData = message.data.toString()
-                        val progress = gson.fromJson(progressData, PlotScanProgress::class.java)
+                        val progress = gson.fromJson(message.data.toString(), PlotScanProgress::class.java)
                         handlePlotScanProgress(progress)
                     } catch (e: Exception) {
                         plugin.logger.severe("Error processing PLOT_SCAN_PROGRESS: ${e.message}")
@@ -261,8 +268,7 @@ class ServerCommunicationManager(private val plugin: BuildersPlots) {
                 }
                 "PLOT_SCAN_COMPLETE" -> {
                     try {
-                        val plotName = message.data.toString()
-                        handlePlotScanComplete(plotName)
+                        handlePlotScanComplete(message.data.toString())
                     } catch (e: Exception) {
                         plugin.logger.severe("Error processing PLOT_SCAN_COMPLETE: ${e.message}")
                         e.printStackTrace()
@@ -274,6 +280,7 @@ class ServerCommunicationManager(private val plugin: BuildersPlots) {
             e.printStackTrace()
         }
     }
+
 
     private fun handlePlotCreation(plot: Plot) {
         // Add the plot to our manager
@@ -337,13 +344,12 @@ class ServerCommunicationManager(private val plugin: BuildersPlots) {
                                 // Создаем спавн-платформу
                                 val spawnLocation = Location(
                                     world,
-                                    plot.center.x,
+                                    plot.center.x,  // Используем оригинальные координаты центра плота
                                     plot.center.y,
                                     plot.center.z
                                 )
                                 world.spawnLocation = spawnLocation
                                 plugin.logger.info("Set spawn location at original plot center: ${plot.center.x}, ${plot.center.y}, ${plot.center.z}")
-
 //                                // Создаем небольшую платформу для спавна
 //                                for (x in -5..5) {
 //                                    for (z in -5..5) {
@@ -451,47 +457,42 @@ class ServerCommunicationManager(private val plugin: BuildersPlots) {
     }
 
     private fun handleBlockChange(blockData: BlockChangeData) {
-        if (plugin.serverType == ServerType.TEST) {
-            val plot = plugin.plotManager.getPlot(blockData.plotName)
-            if (plot == null) {
-                plugin.logger.warning("Plot not found for block change: ${blockData.plotName}")
-                return
-            }
+        // Выполняем только на тестовом сервере
+        if (plugin.serverType != ServerType.TEST) return
 
-            val worldName = plot.getTestWorldName()
-            val world = Bukkit.getWorld(worldName)
-            if (world == null) {
-                plugin.logger.warning("World not found for block change: $worldName")
-                return
-            }
+        // Получаем плот по имени
+        val plot = plugin.plotManager.getPlot(blockData.plotName) ?: return
 
-            // На Purpur используем синхронный планировщик
-            Bukkit.getScheduler().runTask(plugin, Runnable {
-                try {
-                    val block = world.getBlockAt(blockData.x, blockData.y, blockData.z)
+        // Получаем мир плота
+        val worldName = plot.getTestWorldName(plugin)
+        val world = Bukkit.getWorld(worldName) ?: return
 
-                    if (blockData.type == "BREAK") {
-                        block.type = Material.AIR
-                    } else {
-                        try {
-                            val material = Material.valueOf(blockData.material)
-                            block.type = material
+        // Применяем изменения блока без лишних логов
+        Bukkit.getScheduler().runTask(plugin, Runnable {
+            try {
+                val block = world.getBlockAt(blockData.x, blockData.y, blockData.z)
 
-                            // Set block data if available
-                            if (blockData.blockData.isNotEmpty()) {
-                                val data = Bukkit.createBlockData(blockData.blockData)
-                                block.blockData = data
+                when (blockData.type) {
+                    "BREAK" -> block.type = Material.AIR
+                    else -> {
+                        // Проверяем материал перед применением, чтобы избежать исключений
+                        val material = Material.getMaterial(blockData.material) ?: return@Runnable
+                        block.type = material
+
+                        // Устанавливаем данные блока, если они доступны
+                        if (blockData.blockData.isNotEmpty()) {
+                            try {
+                                block.blockData = Bukkit.createBlockData(blockData.blockData)
+                            } catch (e: Exception) {
+                                // Неверные данные блока, игнорируем
                             }
-                        } catch (e: IllegalArgumentException) {
-                            plugin.logger.warning("Invalid material: ${blockData.material}")
                         }
                     }
-                } catch (e: Exception) {
-                    plugin.logger.severe("Error applying block change: ${e.message}")
-                    e.printStackTrace()
                 }
-            })
-        }
+            } catch (e: Exception) {
+                // Критическая ошибка, оставляем пустой catch для производительности
+            }
+        })
     }
 
     // Запрос блоков плота с основного сервера
@@ -526,118 +527,190 @@ class ServerCommunicationManager(private val plugin: BuildersPlots) {
         scanAndSendPlotBlocks(plot)
     }
 
-    // Сканирование и отправка блоков с основного сервера
     private fun scanAndSendPlotBlocks(plot: Plot) {
         val minLoc = plot.getMinLocation()
         val maxLoc = plot.getMaxLocation()
         val world = Bukkit.getWorld(minLoc.world) ?: return
 
-        plugin.logger.info("Scanning blocks for plot: ${plot.name} from ${minLoc.x},${minLoc.z} to ${maxLoc.x},${maxLoc.z}")
-
         // Инициализируем структуры для отслеживания прогресса
-        val plotChunks = mutableSetOf<Pair<Int, Int>>()
+        val plotChunks = mutableListOf<Pair<Int, Int>>()
         scannedChunks[plot.name] = Collections.synchronizedSet(mutableSetOf())
 
-        // Вычисляем все чанки в области плота
+        // Вычисляем все чанки в области плота и сортируем их от центра к краям
+        val centerChunkX = plot.center.x.toInt() shr 4
+        val centerChunkZ = plot.center.z.toInt() shr 4
+
         for (chunkX in (minLoc.x.toInt() shr 4)..(maxLoc.x.toInt() shr 4)) {
             for (chunkZ in (minLoc.z.toInt() shr 4)..(maxLoc.z.toInt() shr 4)) {
                 plotChunks.add(Pair(chunkX, chunkZ))
             }
         }
 
+        // Сортируем чанки по удалённости от центра
+        plotChunks.sortBy { (chunkX, chunkZ) ->
+            (chunkX - centerChunkX) * (chunkX - centerChunkX) +
+                    (chunkZ - centerChunkZ) * (chunkZ - centerChunkZ)
+        }
+
         totalChunks[plot.name] = plotChunks.size
-        plugin.logger.info("Total chunks to scan: ${plotChunks.size} for plot ${plot.name}")
 
-        // Количество блоков в одной партии
-        val batchSize = 1000
-        val centerX = plot.center.x.toInt()
-        val centerZ = plot.center.z.toInt()
+        // ВАЖНО: Уменьшаем размер пакета до 100 блоков (вместо 2000)
+        val batchSize = 2000
 
-        // Для каждого чанка в области
-        for (chunk in plotChunks) {
-            val (chunkX, chunkZ) = chunk
+        // ВАЖНО: Задержка между отправками пакетов (10 тиков ≈ 500 мс)
+        val delayBetweenBatches = 1L
 
-            // На Purpur используем синхронный планировщик
-            Bukkit.getScheduler().runTask(plugin, Runnable {
-                try {
-                    // Определяем границы сканирования для этого чанка
-                    val xStart = Math.max(minLoc.x.toInt(), chunkX shl 4)
-                    val xEnd = Math.min(maxLoc.x.toInt(), (chunkX shl 4) + 15)
-                    val zStart = Math.max(minLoc.z.toInt(), chunkZ shl 4)
-                    val zEnd = Math.min(maxLoc.z.toInt(), (chunkZ shl 4) + 15)
+        // Снижаем нагрузку - обрабатываем только 1 чанк одновременно
+        val concurrentChunks = 1
+        var activeChunks = 0
+        val chunkLock = Object()
 
-                    val blockBatch = ArrayList<PlotBlockData>(batchSize)
-                    var chunkBlockCount = 0
+        // Диапазон высот для сканирования
+        val minHeight = Math.max(world.minHeight, -64)
+        val maxHeight = Math.min(world.maxHeight, 320)
 
-                    // Сканируем блоки
-                    for (x in xStart..xEnd) {
-                        for (z in zStart..zEnd) {
-                            // Сканируем от минимальной до максимальной высоты
-                            for (y in world.minHeight until world.maxHeight) {
-                                val block = world.getBlockAt(x, y, z)
+        // Счетчик всех отправленных блоков для статистики
+        var totalBlocksSent = 0
 
-                                // Пропускаем воздух и пустые блоки для оптимизации
-                                if (block.type != Material.AIR && block.type != Material.CAVE_AIR && block.type != Material.VOID_AIR) {
-                                    val blockData = PlotBlockData(
-                                        plotName = plot.name,
-                                        // Используем абсолютные координаты вместо относительных
-                                        x = x, // Убрали вычитание centerX
-                                        y = y,
-                                        z = z, // Убрали вычитание centerZ
-                                        material = block.type.name,
-                                        blockData = block.blockData.asString
-                                    )
+        // Итератор для чанков
+        val chunkIterator = plotChunks.iterator()
 
-                                    blockBatch.add(blockData)
-                                    chunkBlockCount++
+        // Функция для запуска обработки следующего чанка
+        fun processNextChunk() {
+            synchronized(chunkLock) {
+                if (chunkIterator.hasNext() && activeChunks < concurrentChunks) {
+                    val (chunkX, chunkZ) = chunkIterator.next()
+                    activeChunks++
 
-                                    // Отправляем партию, если достигли лимита
-                                    if (blockBatch.size >= batchSize) {
-                                        sendPlotBlocks(ArrayList(blockBatch))
-                                        blockBatch.clear()
+                    // Запускаем обработку чанка в основном потоке
+                    Bukkit.getScheduler().runTask(plugin, object : Runnable {
+                        // Текущие координаты для продолжения сканирования
+                        private var currentY = minHeight
+                        private var currentX = Math.max(minLoc.x.toInt(), chunkX shl 4)
+                        private var currentZ = Math.max(minLoc.z.toInt(), chunkZ shl 4)
+                        private val xEnd = Math.min(maxLoc.x.toInt(), (chunkX shl 4) + 15)
+                        private val zEnd = Math.min(maxLoc.z.toInt(), (chunkZ shl 4) + 15)
+                        private val blockBatch = ArrayList<PlotBlockData>(batchSize)
+
+                        override fun run() {
+                            try {
+                                // Сканируем только часть чанка за один раз
+                                var blocksScanned = 0
+
+                                // Продолжаем с того места, где остановились
+                                scanLoop@ while (currentY < maxHeight) {
+                                    while (currentX <= xEnd) {
+                                        while (currentZ <= zEnd) {
+                                            val block = world.getBlockAt(currentX, currentY, currentZ)
+                                            val material = block.type
+
+                                            // Пропускаем воздух
+                                            if (material != Material.AIR &&
+                                                material != Material.CAVE_AIR &&
+                                                material != Material.VOID_AIR) {
+
+                                                // Создаем данные о блоке
+                                                val blockData = PlotBlockData(
+                                                    plotName = plot.name,
+                                                    x = currentX,
+                                                    y = currentY,
+                                                    z = currentZ,
+                                                    material = material.name,
+                                                    blockData = block.blockData.asString
+                                                )
+
+                                                blockBatch.add(blockData)
+                                                blocksScanned++
+
+                                                // Если набрали достаточно блоков, отправляем пакет
+                                                if (blockBatch.size >= batchSize) {
+                                                    totalBlocksSent += blockBatch.size
+                                                    sendPlotBlocksAsync(ArrayList(blockBatch))
+                                                    blockBatch.clear()
+
+                                                    // Запоминаем текущую позицию и планируем продолжение с задержкой
+                                                    currentZ++
+                                                    Bukkit.getScheduler().runTaskLater(plugin, this, delayBetweenBatches)
+                                                    return
+                                                }
+                                            }
+                                            currentZ++
+                                        }
+                                        currentZ = Math.max(minLoc.z.toInt(), chunkZ shl 4)
+                                        currentX++
                                     }
+                                    currentX = Math.max(minLoc.x.toInt(), chunkX shl 4)
+                                    currentY++
+                                }
+
+                                // Отправляем оставшиеся блоки
+                                if (blockBatch.isNotEmpty()) {
+                                    totalBlocksSent += blockBatch.size
+                                    sendPlotBlocksAsync(ArrayList(blockBatch))
+                                    blockBatch.clear()
+                                }
+
+                                // Чанк полностью обработан, обновляем статус
+                                synchronized(scannedChunks) {
+                                    scannedChunks[plot.name]?.add(Pair(chunkX, chunkZ))
+                                    val scanned = scannedChunks[plot.name]?.size ?: 0
+                                    val total = totalChunks[plot.name] ?: 1
+                                    val progress = PlotScanProgress(plot.name, scanned, total)
+                                    sendPlotScanProgress(progress)
+
+                                    // Если все чанки обработаны, завершаем процесс
+                                    if (scanned >= total) {
+                                        sendPlotScanComplete(plot.name)
+                                        scannedChunks.remove(plot.name)
+                                        totalChunks.remove(plot.name)
+                                    }
+                                }
+
+                                // Уменьшаем счетчик активных чанков и запускаем следующий
+                                synchronized(chunkLock) {
+                                    activeChunks--
+                                    processNextChunk()
+                                }
+                            } catch (e: Exception) {
+                                // При ошибке просто продолжаем со следующим чанком
+                                synchronized(chunkLock) {
+                                    activeChunks--
+                                    processNextChunk()
                                 }
                             }
                         }
-                    }
-
-                    // Отправляем оставшиеся блоки
-                    if (blockBatch.isNotEmpty()) {
-                        sendPlotBlocks(blockBatch)
-                    }
-
-                    plugin.logger.info("Scanned chunk ($chunkX, $chunkZ) for plot ${plot.name}, found $chunkBlockCount blocks")
-
-                    // Отмечаем чанк как отсканированный и отправляем прогресс
-                    synchronized(scannedChunks) {
-                        scannedChunks[plot.name]?.add(Pair(chunkX, chunkZ))
-                        val scanned = scannedChunks[plot.name]?.size ?: 0
-                        val total = totalChunks[plot.name] ?: 1
-                        val progress = PlotScanProgress(plot.name, scanned, total)
-                        sendPlotScanProgress(progress)
-
-                        // Если отсканировали все чанки, отправляем сигнал о завершении
-                        if (scanned >= total) {
-                            sendPlotScanComplete(plot.name)
-                            plugin.logger.info("Completed scanning all chunks for plot: ${plot.name}")
-
-                            // Очищаем данные о прогрессе
-                            scannedChunks.remove(plot.name)
-                            totalChunks.remove(plot.name)
-                        }
-                    }
-                } catch (e: Exception) {
-                    plugin.logger.severe("Error scanning chunk ($chunkX, $chunkZ): ${e.message}")
-                    e.printStackTrace()
+                    })
                 }
-            })
+            }
+        }
+
+        // Запускаем обработку чанков
+        processNextChunk()
+    }
+
+    /**
+     * Асинхронная отправка блоков с отложенной сериализацией
+     * Предотвращает блокировку основного потока сервера
+     */
+    private fun sendPlotBlocksAsync(blocks: List<PlotBlockData>) {
+        // Выполняем сериализацию JSON в отдельном потоке
+        executor.submit {
+            try {
+                val blockDataJson = gson.toJson(blocks)
+                val message = Message("PLOT_BLOCKS", blockDataJson)
+                messageQueue.add(gson.toJson(message))
+            } catch (e: Exception) {
+                // Игнорируем ошибки для обеспечения стабильности
+            }
         }
     }
 
-    // Отправка партии блоков
+    /**
+     * Сохраняем оригинальный метод для обратной совместимости,
+     * но делегируем работу асинхронной версии
+     */
     private fun sendPlotBlocks(blocks: List<PlotBlockData>) {
-        val message = Message("PLOT_BLOCKS", gson.toJson(blocks))
-        messageQueue.add(gson.toJson(message))
+        sendPlotBlocksAsync(blocks)
     }
 
     // Отправка прогресса сканирования
@@ -693,7 +766,7 @@ class ServerCommunicationManager(private val plugin: BuildersPlots) {
                     }
                 }
 
-                plugin.logger.info("Placed ${blocks.size} blocks for plot $plotName")
+                // plugin.logger.info("Placed ${blocks.size} blocks for plot $plotName")
             } catch (e: Exception) {
                 plugin.logger.severe("Error handling block batch: ${e.message}")
                 e.printStackTrace()

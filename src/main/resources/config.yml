@@ -19,6 +19,9 @@ plots:
   # Default world for plots on main server
   main-world: "world"
   # World prefix for plot worlds on test server
-  test-world-prefix: "plot_"
+  plot-world-prefix: "plot_"
 
-world-creation-command: "mv create %world% normal -g flat"
+  # Интервал автосохранения миров в минутах (0 = отключено)
+  world-autosave-interval: 1
+
+  world-unload-delay: 1

@@ -104,7 +104,32 @@ class BuildersPlotsCommand(private val plugin: BuildersPlots) : CommandExecutor,
             "help" -> {
                 sendHelp(sender)
             }
-            
+
+            "leave" -> {
+                // Only process on the test server
+                if (plugin.serverType != ServerType.TEST) {
+                    sender.sendMessage("${ChatColor.RED}Данная команда доступна только на тестовом сервере.")
+                    return true
+                }
+
+                // Check if player is in a plot world
+                val worldName = sender.world.name
+                val worldPrefix = plugin.config.getString("plot-world-prefix", "plot_")
+
+                if (!worldPrefix?.let { worldName.startsWith(it) }!!) {
+                    sender.sendMessage("${ChatColor.RED}Вы не находитесь в мире плота!")
+                    return true
+                }
+
+                // Teleport to the main world
+                val mainWorld = Bukkit.getWorlds()[0]
+                sender.teleport(mainWorld.spawnLocation)
+                sender.sendMessage("${ChatColor.GREEN}Вы вернулись в основной мир.")
+
+                // Notify the plot manager that player left the world
+                plugin.plotManager.playerLeftPlotWorld(worldName)
+            }
+
             else -> {
                 sender.sendMessage("${ChatColor.RED}Unknown command. Use /bp help for help.")
             }
@@ -112,7 +137,7 @@ class BuildersPlotsCommand(private val plugin: BuildersPlots) : CommandExecutor,
         
         return true
     }
-    
+
     private fun sendHelp(player: Player) {
         player.sendMessage("${ChatColor.GOLD}=== BuildersPlots Commands ===")
         player.sendMessage("${ChatColor.YELLOW}/bp create <name> <radius> ${ChatColor.WHITE}- Create a new plot")
