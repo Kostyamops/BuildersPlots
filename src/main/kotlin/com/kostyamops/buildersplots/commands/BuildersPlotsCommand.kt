@@ -1,9 +1,7 @@
 package com.kostyamops.buildersplots.commands
 
 import com.kostyamops.buildersplots.BuildersPlots
-import com.kostyamops.buildersplots.ServerType
-import com.kostyamops.buildersplots.ui.PlotListMenu
-import org.bukkit.Bukkit
+import com.kostyamops.buildersplots.commands.subcommands.*
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
@@ -12,10 +10,31 @@ import org.bukkit.entity.Player
 
 /**
  * Main command handler for BuildersPlots plugin
- * @author Kostyamops
- * @updated 2025-08-04 01:35:44
  */
 class BuildersPlotsCommand(private val plugin: BuildersPlots) : CommandExecutor, TabCompleter {
+
+    private val subcommands = mutableMapOf<String, SubCommand>()
+    private val alwaysAvailableCommands = listOf("help", "ping")
+
+    init {
+        // Register all subcommands
+        registerSubCommand(HelpCommand(plugin))
+        registerSubCommand(PingCommand(plugin))
+        registerSubCommand(CreateCommand(plugin))
+        registerSubCommand(ListCommand(plugin))
+        registerSubCommand(DeleteCommand(plugin))
+        registerSubCommand(TeleportCommand(plugin))
+        registerSubCommand(LeaveCommand(plugin))
+    }
+
+    private fun registerSubCommand(subCommand: SubCommand) {
+        subcommands[subCommand.getName()] = subCommand
+
+        // Register aliases if any
+        subCommand.getAliases().forEach { alias ->
+            subcommands[alias] = subCommand
+        }
+    }
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
         if (sender !is Player) {
@@ -24,147 +43,55 @@ class BuildersPlotsCommand(private val plugin: BuildersPlots) : CommandExecutor,
         }
 
         if (args.isEmpty()) {
-            sendHelp(sender)
+            subcommands["help"]?.execute(sender, args)
             return true
         }
 
-        when (args[0].lowercase()) {
-            "create" -> {
-                if (plugin.serverType != ServerType.MAIN) {
-                    plugin.localizationManager.sendMessage(sender, "messages.buildersplotscommand.create_main_only")
-                    return true
-                }
+        val subCommand = args[0].lowercase()
 
-                if (args.size < 3) {
-                    plugin.localizationManager.sendMessage(sender, "messages.buildersplotscommand.create_usage")
-                    return true
-                }
+        // Always allow help and ping commands
+        if (subCommand in alwaysAvailableCommands) {
+            subcommands[subCommand]?.execute(sender, args)
+            return true
+        }
 
-                val plotName = args[1]
-                val radius = args[2].toIntOrNull()
+        // Check connection status for other commands
+        if (!plugin.communicationManager.isConnected()) {
+            plugin.localizationManager.sendMessage(sender, "messages.buildersplotscommand.no_connection")
+            plugin.localizationManager.sendMessage(sender, "messages.buildersplotscommand.try_ping")
+            return true
+        }
 
-                if (radius == null) {
-                    plugin.localizationManager.sendMessage(sender, "messages.buildersplotscommand.radius_number")
-                    return true
-                }
-
-                val plot = plugin.plotManager.createPlot(plotName, radius, sender)
-                if (plot == null) {
-                    plugin.localizationManager.sendMessage(sender, "messages.buildersplotscommand.create_failed")
-                } else {
-                    plugin.localizationManager.sendMessage(sender, "messages.buildersplotscommand.create_success",
-                        "%name%" to plot.name, "%radius%" to plot.radius.toString())
-                }
-            }
-
-            "list" -> {
-                PlotListMenu(plugin).openMenu(sender)
-            }
-
-            "delete" -> {
-                if (args.size < 2) {
-                    plugin.localizationManager.sendMessage(sender, "messages.buildersplotscommand.delete_usage")
-                    return true
-                }
-
-                val plotName = args[1]
-                if (plugin.plotManager.deletePlot(plotName)) {
-                    plugin.localizationManager.sendMessage(sender, "messages.buildersplotscommand.delete_success",
-                        "%name%" to plotName)
-                } else {
-                    plugin.localizationManager.sendMessage(sender, "messages.buildersplotscommand.plot_not_found",
-                        "%name%" to plotName)
-                }
-            }
-
-            "tp", "teleport" -> {
-                if (plugin.serverType != ServerType.TEST) {
-                    plugin.localizationManager.sendMessage(sender, "messages.buildersplotscommand.tp_test_only")
-                    return true
-                }
-
-                if (args.size < 2) {
-                    plugin.localizationManager.sendMessage(sender, "messages.buildersplotscommand.tp_usage")
-                    return true
-                }
-
-                val plotName = args[1]
-                val plot = plugin.plotManager.getPlot(plotName)
-
-                if (plot == null) {
-                    plugin.localizationManager.sendMessage(sender, "messages.buildersplotscommand.plot_not_found",
-                        "%name%" to plotName)
-                    return true
-                }
-
-                val world = Bukkit.getWorld(plot.getTestWorldName())
-                if (world == null) {
-                    plugin.localizationManager.sendMessage(sender, "messages.buildersplotscommand.plot_world_not_found",
-                        "%name%" to plotName)
-                    return true
-                }
-
-                sender.teleport(world.getSpawnLocation())
-                plugin.localizationManager.sendMessage(sender, "messages.buildersplotscommand.tp_success",
-                    "%name%" to plotName)
-            }
-
-            "help" -> {
-                sendHelp(sender)
-            }
-
-            "leave" -> {
-                if (plugin.serverType != ServerType.TEST) {
-                    plugin.localizationManager.sendMessage(sender, "messages.buildersplotscommand.leave_test_only")
-                    return true
-                }
-
-                val worldName = sender.world.name
-                val worldPrefix = plugin.config.getString("plot-world-prefix", "plot_")
-
-                if (!worldPrefix?.let { worldName.startsWith(it) }!!) {
-                    plugin.localizationManager.sendMessage(sender, "messages.buildersplotscommand.not_in_plot_world")
-                    return true
-                }
-
-                val mainWorld = Bukkit.getWorlds()[0]
-                sender.teleport(mainWorld.spawnLocation)
-                plugin.localizationManager.sendMessage(sender, "messages.buildersplotscommand.returned_main_world")
-
-                plugin.plotManager.playerLeftPlotWorld(worldName)
-            }
-
-            else -> {
-                plugin.localizationManager.sendMessage(sender, "messages.buildersplotscommand.unknown_command")
-            }
+        // Execute the subcommand if it exists
+        if (subcommands.containsKey(subCommand)) {
+            subcommands[subCommand]?.execute(sender, args)
+        } else {
+            plugin.localizationManager.sendMessage(sender, "messages.buildersplotscommand.unknown_command")
         }
 
         return true
     }
 
-    private fun sendHelp(player: Player) {
-        plugin.localizationManager.sendMessage(player, "messages.buildersplotscommand.help_header")
-        plugin.localizationManager.sendMessage(player, "messages.buildersplotscommand.help_create")
-        plugin.localizationManager.sendMessage(player, "messages.buildersplotscommand.help_list")
-        plugin.localizationManager.sendMessage(player, "messages.buildersplotscommand.help_delete")
-
-        if (plugin.serverType == ServerType.TEST) {
-            plugin.localizationManager.sendMessage(player, "messages.buildersplotscommand.help_tp")
-        }
-    }
-
     override fun onTabComplete(sender: CommandSender, command: Command, alias: String, args: Array<out String>): List<String>? {
         if (args.size == 1) {
-            val subCommands = mutableListOf("create", "list", "delete", "help")
-            if (plugin.serverType == ServerType.TEST) {
-                subCommands.add("tp")
+            // Always show help and ping in tab completion
+            val commands = alwaysAvailableCommands.toMutableList()
+
+            // Only show other commands if connected
+            if (plugin.communicationManager.isConnected()) {
+                subcommands.keys
+                    .filter { it !in alwaysAvailableCommands }
+                    .distinct()
+                    .forEach { commands.add(it) }
             }
-            return subCommands.filter { it.startsWith(args[0].lowercase()) }
+
+            return commands.distinct().filter { it.startsWith(args[0].lowercase()) }
         }
 
-        if (args.size == 2 && (args[0].equals("delete", ignoreCase = true) || args[0].equals("tp", ignoreCase = true))) {
-            val plotNames = plugin.plotManager.getAllPlots().map { it.name }
-            return plotNames.filter { it.startsWith(args[1], ignoreCase = true) }
+        // Let the subcommand handle its own tab completion
+        val subCommand = args[0].lowercase()
+        if (subcommands.containsKey(subCommand)) {
+            return subcommands[subCommand]?.tabComplete(sender, args.copyOfRange(1, args.size))
         }
 
         return null

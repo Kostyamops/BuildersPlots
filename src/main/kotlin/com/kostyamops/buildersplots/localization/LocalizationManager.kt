@@ -18,6 +18,12 @@ class LocalizationManager(private val plugin: BuildersPlots) {
     private lateinit var currentLanguage: String
 
     /**
+     * Проверка статуса debug режима
+     */
+    private val debugEnabled: Boolean
+        get() = plugin.config.getBoolean("debug.enabled", false)
+
+    /**
      * Инициализирует менеджер локализаций
      */
     fun initialize() {
@@ -36,8 +42,12 @@ class LocalizationManager(private val plugin: BuildersPlots) {
             // Загружаем выбранный в конфиге язык
             loadLanguage(plugin.config.getString("chat.language", "en-US"))
 
-            // Здесь используем обычный лог, так как локализация ещё может быть не полностью инициализирована
-            plugin.logger.info("Loaded language: $currentLanguage")
+            if (debugEnabled) {
+                plugin.logger.info(getLogMessage("logs.debug.enabled"))
+            } else {
+                plugin.logger.info(getLogMessage("logs.debug.disabled"))
+            }
+
         } catch (e: Exception) {
             plugin.logger.log(Level.SEVERE, "Error initializing localizations", e)
         }
@@ -52,7 +62,7 @@ class LocalizationManager(private val plugin: BuildersPlots) {
 
         if (!langFile.exists()) {
             plugin.logger.warning("Language file $language.yml not found. Using en-US.yml")
-            // Если файл не найден, используем русский по умолчанию
+            // Если файл не найден, используем английский по умолчанию
             loadLanguage("en-US")
             return
         }
@@ -122,32 +132,33 @@ class LocalizationManager(private val plugin: BuildersPlots) {
     }
 
     /**
-     * Логирует сообщение в консоль с использованием локализации
-     */
-    fun log(level: Level, key: String, vararg args: Pair<String, String>) {
-        val message = getLogMessage(key, *args)
-        plugin.logger.log(level, message)
-    }
-
-    /**
      * Логирует информационное сообщение в консоль
+     * Выводится только если включен debug режим
      */
     fun info(key: String, vararg args: Pair<String, String>) {
-        log(Level.INFO, key, *args)
+        // Проверяем режим debug перед выводом информационных сообщений
+        if (debugEnabled) {
+            val message = getLogMessage(key, *args)
+            plugin.logger.info(message)
+        }
     }
 
     /**
      * Логирует предупреждение в консоль
+     * Выводится всегда
      */
     fun warning(key: String, vararg args: Pair<String, String>) {
-        log(Level.WARNING, key, *args)
+        val message = getLogMessage(key, *args)
+        plugin.logger.warning(message)
     }
 
     /**
      * Логирует ошибку в консоль
+     * Выводится всегда
      */
     fun severe(key: String, vararg args: Pair<String, String>) {
-        log(Level.SEVERE, key, *args)
+        val message = getLogMessage(key, *args)
+        plugin.logger.severe(message)
     }
 
     /**

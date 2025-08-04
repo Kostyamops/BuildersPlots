@@ -33,6 +33,14 @@ messages:
     help_list: "&e/bp list &f- List all available plots"
     help_delete: "&e/bp delete <name> &f- Delete a plot"
     help_tp: "&e/bp tp <name> &f- Teleport to a plot"
+    ping_sending: "&eSending ping to the other server..."
+    ping_success: "&aConnection successful! Response time: &e%time%ms"
+    ping_failed: "&cNo response from the other server. Connection failed."
+    ping_error: "&cError while pinging: %error%"
+    no_connection: "&cNo connection to the other server. Command unavailable."
+    try_ping: "&eTry using &6/bp ping&e to check the connection."
+    help_ping: "&e/bp ping &f- Check connection with the other server"
+    help_leave: "&e/bp leave &f- Leave the plot world"
 
   # PlotManager messages for players
   plotmanager:
@@ -61,6 +69,12 @@ messages:
   # ServerCommunication messages for players
   servercommunication:
     loading_blocks_start: "&eStarting to load blocks for plot &6%plot%&e..."
+    connection_established: "Connection to remote server established"
+    connection_lost: "&eConnection to remote server lost"
+    ping_received: "Received ping request from %type% server"
+    ping_response_received: "Received ping response from %type% server (time: %time%ms)"
+    ping_error: "&cError processing ping request: %error%"
+    ping_response_error: "&cError processing ping response: %error%"
 
   # Plot list menu UI messages
   plotlistmenu:
@@ -248,3 +262,7 @@ logs:
     plot_serialize_error: "&cError serializing plot for sending: %error%"
     block_serialize_error: "&cError serializing block data for sending: %error%"
     requesting_blocks: "Requesting blocks for plot: &e%plot%"
+
+    debug:
+      enabled: "Debug mode enabled - verbose logging active"
+      disabled: "Debug mode disabled - only errors and warnings will be logged"

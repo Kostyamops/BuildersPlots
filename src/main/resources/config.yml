@@ -44,7 +44,10 @@ plots:
 chat:
   # Prefix shown in chat messages from the plugin
   # Supports color codes with & symbol
-  prefix: "&f[&4BuildersPlots&f]"
+  prefix: "&f[&4BP&f]"
   # Language file to use
   # Available options: en-US, ru-RU, es-ES
   language: "en-US"
+
+debug:
+  enabled: false  # Enable to log debug info (packets, scheduler, etc.)

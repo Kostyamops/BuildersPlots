@@ -51,6 +51,14 @@ data class PlotScanProgress(
 }
 
 /**
+ * Данные для ping-сообщения
+ */
+data class PingData(
+    val timestamp: Long = System.currentTimeMillis(),
+    val serverType: String
+)
+
+/**
  * Константы типов сообщений
  */
 object MessageType {
@@ -66,4 +74,8 @@ object MessageType {
     const val PLOT_SCAN_COMPLETE = "PLOT_SCAN_COMPLETE"
 
     const val BLOCK_CHANGE = "BLOCK_CHANGE"
+
+    // Новые типы сообщений для пинга
+    const val PING = "PING"
+    const val PING_RESPONSE = "PING_RESPONSE"
 }

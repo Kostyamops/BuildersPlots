@@ -62,6 +62,81 @@ class ServerCommunicationManager(val plugin: BuildersPlots) {
     private var lastReportTime = System.currentTimeMillis()
     private val reportInterval = 5000 // Интервал отчета в миллисекундах
 
+    private var connectionStatus: Boolean = false
+    private var lastStatusUpdate: Long = 0
+    private val STATUS_CACHE_DURATION = 10000 // 10 секунд кэша
+    private val pingResponseFutures = mutableMapOf<Long, java.util.concurrent.CompletableFuture<Long>>()
+
+    /**
+     * Проверяет активно ли соединение с другим сервером
+     * @return true если соединение активно, false иначе
+     */
+    fun isConnected(): Boolean {
+        val currentTime = System.currentTimeMillis()
+
+        // Если кэш еще актуален, возвращаем кэшированное значение
+        if (currentTime - lastStatusUpdate < STATUS_CACHE_DURATION) {
+            return connectionStatus
+        }
+
+        // Обновляем статус кэша
+        connectionStatus = when (plugin.serverType) {
+            ServerType.MAIN -> serverSocket != null && !serverSocket!!.isClosed && clientSocket != null
+            ServerType.TEST -> clientSocket != null && clientSocket!!.isConnected && !clientSocket!!.isClosed
+        }
+        lastStatusUpdate = currentTime
+
+        return connectionStatus
+    }
+
+    /**
+     * Обновляет статус соединения
+     * @param status Новый статус соединения
+     */
+    fun updateConnectionStatus(status: Boolean) {
+        connectionStatus = status
+        lastStatusUpdate = System.currentTimeMillis()
+    }
+
+    /**
+     * Отправляет ping-запрос и возвращает время ответа
+     * @return CompletableFuture с временем отклика в мс, или -1 при ошибке
+     */
+    fun pingAsync(): java.util.concurrent.CompletableFuture<Long> {
+        val future = java.util.concurrent.CompletableFuture<Long>()
+
+        try {
+            val timestamp = System.currentTimeMillis()
+            val pingData = com.kostyamops.buildersplots.network.model.PingData(
+                timestamp = timestamp,
+                serverType = plugin.serverType.toString()
+            )
+
+            // Создаем и отправляем ping-сообщение
+            val message = Message(MessageType.PING, gson.toJson(pingData))
+            messageQueue.add(gson.toJson(message))
+
+            // Регистрируем future для получения ответа
+            pingResponseFutures[timestamp] = future
+
+            // Устанавливаем таймаут (3 секунды)
+            Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, Runnable {
+                if (!future.isDone) {
+                    future.complete(-1L) // -1 означает таймаут
+                    pingResponseFutures.remove(timestamp)
+                    updateConnectionStatus(false)
+                }
+            }, 60L) // 3 секунды (60 тиков)
+
+        } catch (e: Exception) {
+            plugin.logger.warning("Error sending ping: ${e.message}")
+            future.complete(-1L)
+            updateConnectionStatus(false)
+        }
+
+        return future
+    }
+
     /**
      * Запуск менеджера коммуникации
      */
@@ -194,6 +269,45 @@ class ServerCommunicationManager(val plugin: BuildersPlots) {
                         plugin.localizationManager.severe("logs.servercommunication.scan_complete_error",
                             "%error%" to e.message.toString())
                         e.printStackTrace()
+                    }
+                }
+                MessageType.PING -> {
+                    try {
+                        val pingData = gson.fromJson(message.data.toString(), com.kostyamops.buildersplots.network.model.PingData::class.java)
+
+                        // Отправляем ответ с тем же timestamp
+                        val responseData = com.kostyamops.buildersplots.network.model.PingData(
+                            timestamp = pingData.timestamp,
+                            serverType = plugin.serverType.toString()
+                        )
+                        val response = Message(MessageType.PING_RESPONSE, gson.toJson(responseData))
+                        messageQueue.add(gson.toJson(response))
+
+                        // Обновляем статус соединения
+                        updateConnectionStatus(true)
+
+                    } catch (e: Exception) {
+                        plugin.localizationManager.severe("logs.servercommunication.ping_error",
+                            "%error%" to e.message.toString())
+                    }
+                }
+                MessageType.PING_RESPONSE -> {
+                    try {
+                        val responseData = gson.fromJson(message.data.toString(), com.kostyamops.buildersplots.network.model.PingData::class.java)
+                        val pingTime = System.currentTimeMillis() - responseData.timestamp
+
+                        // Если есть ожидающий future, завершаем его
+                        if (pingResponseFutures.containsKey(responseData.timestamp)) {
+                            pingResponseFutures[responseData.timestamp]?.complete(pingTime)
+                            pingResponseFutures.remove(responseData.timestamp)
+                        }
+
+                        // Обновляем статус соединения
+                        updateConnectionStatus(true)
+
+                    } catch (e: Exception) {
+                        plugin.localizationManager.severe("logs.servercommunication.ping_response_error",
+                            "%error%" to e.message.toString())
                     }
                 }
             }
