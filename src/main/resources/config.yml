@@ -50,4 +50,4 @@ chat:
   language: "en-US"
 
 debug:
-  enabled: false  # Enable to log debug info (packets, scheduler, etc.)
+  enabled: true  # Enable to log debug info (packets, scheduler, etc.)

@@ -263,6 +263,6 @@ logs:
     block_serialize_error: "&cError serializing block data for sending: %error%"
     requesting_blocks: "Requesting blocks for plot: &e%plot%"
 
-    debug:
-      enabled: "Debug mode enabled - verbose logging active"
-      disabled: "Debug mode disabled - only errors and warnings will be logged"
+  debug:
+    enabled: "Debug mode enabled - verbose logging active"
+    disabled: "Debug mode disabled - only errors and warnings will be logged"
