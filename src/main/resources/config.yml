@@ -1,27 +1,50 @@
 # BuildersPlots Configuration
+# Version 1.0.0
 
 # Server type (main or test)
+# The main server is where plots are created and the source data is stored
+# The test server is where builders can work on copies of the plots
 server-type: "main"
 
 # Password for inter-server communication (MUST be the same on both servers)
+# Used to authenticate connections between main and test servers
+# Be sure to change this to something secure and unique
 server-password: "change_this_password_to_something_secure"
 
 # Communication settings
+# Controls how the main and test servers connect to each other
 communication:
   # Local IP address for server communication
+  # Use "localhost" for local testing or the server's IP for production
   ip: "localhost"
+  # Port (NOT server's Minecraft port - a separate port for plugin communication)
+  # Make sure this port is open in your firewall and not used by other applications
   port: 25567
 
 # Plot settings
+# Controls behavior and limits of the plot system
 plots:
-  # Maximum radius allowed for plots
+  # Maximum radius allowed for plots (in blocks)
+  # Larger values may impact server performance
   max-radius: 100
   # Default world for plots on main server
+  # This is where plots will be created on the main server
   main-world: "world"
   # World prefix for plot worlds on test server
+  # Each plot will be created with this prefix followed by the plot name
   plot-world-prefix: "plot_"
-
-  # Интервал автосохранения миров в минутах (0 = отключено)
+  # Autosave interval (in minutes)
+  # How often plot worlds are automatically saved to disk
   world-autosave-interval: 1
-
+  # Plot unload interval (in minutes)
+  # Time delay before unloading empty plot worlds to save resources
   world-unload-delay: 1
+
+# Chat and language settings
+chat:
+  # Prefix shown in chat messages from the plugin
+  # Supports color codes with & symbol
+  prefix: "&f[&4BuildersPlots&f]"
+  # Language file to use
+  # Available options: en-US, ru-RU, es-ES
+  language: "en-US"

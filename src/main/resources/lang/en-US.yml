@@ -1,0 +1,250 @@
+# BuildersPlots - English (United States)
+# Main language file for the BuildersPlots plugin
+# Last updated: 2025-08-04 01:46:10
+# Updated by: Kostyamops
+# All messages displayed to players or logged to console are defined here
+
+messages:
+  # Messages for the main plugin class
+  buildersplots:
+    reload_success: "&aConfiguration and language files reloaded successfully."
+
+  # Messages for the BuildersPlots command handler
+  buildersplotscommand:
+    player_only: "&cThis command can only be used by players."
+    create_main_only: "&cPlot creation is only allowed on the main server."
+    create_usage: "&cUsage: /bp create <name> <radius>"
+    radius_number: "&cRadius must be a number."
+    create_failed: "&cFailed to create plot. Plot name might already exist or radius is invalid."
+    create_success: "&aPlot '%name%' created with radius %radius%."
+    delete_usage: "&cUsage: /bp delete <name>"
+    delete_success: "&aPlot '%name%' deleted successfully."
+    plot_not_found: "&cPlot '%name%' not found."
+    tp_test_only: "&cPlot teleportation is only allowed on the test server."
+    tp_usage: "&cUsage: /bp tp <name>"
+    plot_world_not_found: "&cPlot world for '%name%' not found."
+    tp_success: "&aTeleported to plot '%name%'."
+    leave_test_only: "&cThis command is only available on the test server."
+    not_in_plot_world: "&cYou are not in a plot world!"
+    returned_main_world: "&aYou have returned to the main world."
+    unknown_command: "&cUnknown command. Use /bp help for help."
+    help_header: "&6=== BuildersPlots Commands ==="
+    help_create: "&e/bp create <name> <radius> &f- Create a new plot"
+    help_list: "&e/bp list &f- List all available plots"
+    help_delete: "&e/bp delete <name> &f- Delete a plot"
+    help_tp: "&e/bp tp <name> &f- Teleport to a plot"
+
+  # PlotManager messages for players
+  plotmanager:
+    plot:
+      deleted:
+        teleport: "&cThe plot you were on has been deleted."
+    world:
+      unloading:
+        teleport: "&cThe plot is being unloaded, you have been teleported to the main world."
+
+  # BlockHandler messages for players
+  blockhandler:
+    copy_progress_actionbar: "&aPlot copying: &e%percent%%"
+    copy_progress_admin: "&eCopying plot &6%plot%&e: &b%percent%%"
+    copy_success: "&ePlot '&6%plot%&e' has been successfully copied and is ready to use!"
+    teleport_suggestion: "&eYou can teleport to the plot with the command: &6/bp tp %plot%"
+
+  # PlotHandler messages for players
+  plothandler:
+    plot_deleted_teleport: "&cThe plot you were on has been deleted."
+    teleport_test_only: "&cPlot teleportation is only available on the test server."
+    plot_not_found: "&cPlot with name '%name%' not found."
+    plot_world_not_found: "&cWorld for plot '%name%' not found or not loaded."
+    teleporting: "&aTeleporting to plot '%name%'..."
+
+  # ServerCommunication messages for players
+  servercommunication:
+    loading_blocks_start: "&eStarting to load blocks for plot &6%plot%&e..."
+
+  # Plot list menu UI messages
+  plotlistmenu:
+    no_plots: "&eNo plots have been created yet."
+    inventory_title: "[NOPREFIX]Available Plots"
+    plot_name: "[NOPREFIX]&a%name%"
+    creator: "[NOPREFIX]&7Creator: %creator%"
+    radius: "[NOPREFIX]&7Radius: %radius% blocks"
+    world: "[NOPREFIX]&7World: %world%"
+    click_teleport: "[NOPREFIX]&eClick to teleport"
+
+  # Plot menu listener UI messages
+  plotmenulistener:
+    world_not_found: "&cPlot world for '%name%' not found."
+    teleported: "&aTeleported to plot '%name%'."
+    plot_info: "&ePlot information: %name% (Radius: %radius%)"
+
+# Console log messages - these are logged to the server console
+logs:
+  # BuildersPlots main class logs
+  buildersplots:
+    loading: "Loading BuildersPlots v%version%..."
+    enabled: "BuildersPlots plugin successfully enabled!"
+    disabled: "&eBuilderPlots plugin disabled"
+    server_type_set: "Starting BuildersPlots as %type% server"
+    config_reloaded: "Configuration and language files reloaded"
+    invalid_server_type: "&eInvalid server type: %type%. Using MAIN server type."
+    commands_registered: "All commands registered successfully"
+    test_worlds_loaded: "Test server worlds loaded successfully"
+    network_stopping: "&eStopping network communication"
+    enable_failed: "&cError enabling BuildersPlots: %error%"
+    disable_failed: "&cError disabling BuildersPlots: %error%"
+
+  # PlotManager logs
+  plotmanager:
+    # Directory operations
+    directory:
+      created: "Created plots directory: %path%"
+      delete_error: "&cError deleting directory: %error%"
+      delete_failed: "&cFailed to delete directory: %path%"
+      still_exists: "&eDirectory still exists after deletion attempt: %path%"
+
+    # Plot operations
+    plot:
+      created: "Created new plot: &e%name%&f (Owner: %owner%, Radius: &e%radius%&f)"
+      deleted: "&eDeleted plot: %name%"
+      updated: "Updated plot: &e%name%"
+
+    # Plots collection operations
+    plots:
+      saved: "Saved &e%count%&f plots"
+      loaded: "Loaded &e%count%&f plots"
+      save_error: "&cFailed to save plots: %error%"
+      load_error: "&cFailed to load plots: %error%"
+
+    # Auto-save operations
+    autosave:
+      disabled: "&eWorld auto-save disabled"
+      enabled: "World auto-save enabled with interval &e%interval%&f minutes"
+      stopped: "&eWorld auto-save stopped"
+      start: "Starting automatic plot worlds save..."
+      complete: "Auto-save completed"
+
+    # World operations (bulk)
+    worlds:
+      loading: "Loading plot worlds..."
+      loaded: "Loaded &e%count%&f plot worlds"
+      unloading: "&eUnloading plot worlds..."
+      unloaded: "&eUnloaded &e%count%&f plot worlds"
+      saved: "Saved &e%count%&f worlds"
+
+    # Single world operations
+    world:
+      delete_error: "&cError deleting world: %name%: %error%"
+      delete_timeout: "&cTimeout while deleting world: %name%: %error%"
+      delete_schedule_error: "&cError scheduling world deletion: %name%: %error%"
+      delete_thread_error: "&cAttempted to delete world from non-main thread"
+      unload_failed: "&cFailed to unload world: %name%"
+      unload_error: "&cError unloading world %name%: %error%"
+      unload_empty_failed: "&cFailed to unload empty world: %name%"
+      unloaded: "&eUnloaded world: %name%"
+      unloaded_empty: "&eUnloaded empty world: %name%"
+      unload_scheduled: "&eScheduled empty world unload for %name% in %delay% minutes"
+      files_delete_error: "&cError deleting world files: %error%"
+      moved_to_plugin: "World &e%name%&f moved to plugin folder"
+      already_loaded: "&eWorld %name% is already loaded"
+      found_in_root: "Found plot world in root directory, moving to plugin folder..."
+      moved_success: "World &e%name%&f successfully moved to plugin folder"
+      folder_not_exists: "&eWorld folder does not exist: %name%"
+      loading: "Loading plot world: &e%name%&f from %path%"
+      loaded_success: "World &e%name%&f successfully loaded from %path%!"
+      create_failed: "&cFailed to create world: %name%"
+      load_error: "&cError loading world %name%: %error%"
+      move_error: "&cError moving world: %name%: %error%"
+      plugin_delete_failed: "&cFailed to completely delete world from plugin folder: %name%"
+      root_delete_failed: "&cFailed to completely delete world from root directory: %name%"
+      service_files_delete_error: "&cError deleting service world files: %error%"
+
+    # File operations
+    file:
+      delete_failed: "&cFailed to delete file: %path%"
+      force_delete_failed: "&cFailed to force delete file: %path%"
+
+    # Other operations
+    chunk:
+      cache_clear_failed: "&cFailed to clear chunk cache: %error%"
+
+    # Shutdown
+    shutdown:
+      complete: "PlotManager shutdown complete"
+
+  # BlockHandler logs
+  blockhandler:
+    not_main_server: "&eReceived plot blocks request but not on MAIN server"
+    processing_request: "Processing block request for plot: &e%plot%"
+    plot_not_found: "&cPlot not found: %name%"
+    not_test_server: "&eReceived plot blocks but not on TEST server"
+    plot_not_found_for_blocks: "&cPlot not found for blocks: %name%"
+    world_not_found: "&cWorld not found for plot: %name%"
+    block_set_error: "&cError setting block: %error%"
+    batch_error: "&cError handling block batch: %error%"
+    scan_progress: "Plot scan progress: &e%scanned%&f/&e%total%&f chunks (&e%percent%%&f) for plot &e%plot%"
+    scan_complete: "All blocks received for plot: &e%plot%"
+    copying_completed: "Plot copying completed for: &e%plot%"
+    finalizing_error: "&cError finalizing plot copying: %error%"
+
+  # PlotHandler logs
+  plothandler:
+    world_exists: "&eWorld already exists: %name%"
+    creating_world: "Creating new world for plot: &e%plot%"
+    reflection_failed: "&cFailed to set world folder via reflection: %error%"
+    world_created: "World &e%name%&f created successfully in custom folder!"
+    spawn_set: "Set spawn location at original plot center: &e%x%&f, &e%y%&f, &e%z%"
+    world_configured: "World &e%name%&f configured successfully"
+    requesting_blocks: "Requesting blocks from main server for plot: &e%plot%"
+    configure_failed: "&cFailed to configure world: %error%"
+    create_world_failed: "&cFailed to create world %name%"
+    create_world_error: "&cFailed to create world: %error%"
+    plot_not_found_deletion: "&cPlot not found for deletion: %name%"
+    world_not_found_deletion: "&cWorld not found for deletion: %name%"
+    world_unloaded: "World unloaded: &e%name%"
+    world_folder_deleted: "World folder deleted: &e%name%"
+    delete_folder_failed: "&cFailed to delete world folder: %name%"
+    unload_world_failed: "&cFailed to unload world: %name%"
+    world_unload_error: "&cError unloading world: %error%"
+
+  # ServerCommunication logs
+  servercommunication:
+    # Server communication setup
+    plots_folder_created: "Created plots directory: %path%"
+    communication_start_failed: "&cFailed to start communication: %error%"
+    connections_close_error: "&cError closing connections: %error%"
+
+    # Network message handling
+    received_message: "Received message of type: &e%type%"
+    deserialize_plot_failed: "&cFailed to deserialize plot data"
+    plot_create_error: "&cError processing PLOT_CREATE: %error%"
+    plot_delete_error: "&cError processing PLOT_DELETE: %error%"
+    deserialize_block_failed: "&cFailed to deserialize block data"
+    block_change_error: "&cError processing BLOCK_CHANGE: %error%"
+    request_plot_blocks_error: "&cError processing REQUEST_PLOT_BLOCKS: %error%"
+    plot_blocks_error: "&cError processing PLOT_BLOCKS: %error%"
+    scan_progress_error: "&cError processing PLOT_SCAN_PROGRESS: %error%"
+    scan_complete_error: "&cError processing PLOT_SCAN_COMPLETE: %error%"
+    message_processing_error: "&cError processing message: %error%"
+    messages_sending_error: "&cError sending messages: %error%"
+
+    # Main server communication
+    starting_server: "Starting main server communication on port &e%port%"
+    server_socket_error: "&cError in main server socket: %error%"
+    server_start_failed: "&cFailed to start main server: %error%"
+
+    # Client connection
+    connecting: "Connecting to main server at &e%ip%&f:&e%port%"
+    connection_lost: "&cConnection to main server lost: %error%"
+    connection_failed: "&cFailed to connect to main server: %error%"
+
+    # Authentication
+    auth_failed: "&cAuthentication failed"
+    auth_success: "Authentication successful"
+    client_disconnected: "&eClient disconnected: %error%"
+
+    # Plot operations
+    plot_sending: "Sending plot creation: %json%"
+    plot_serialize_error: "&cError serializing plot for sending: %error%"
+    block_serialize_error: "&cError serializing block data for sending: %error%"
+    requesting_blocks: "Requesting blocks for plot: &e%plot%"

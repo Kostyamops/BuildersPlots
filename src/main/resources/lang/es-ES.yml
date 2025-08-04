@@ -1,0 +1,242 @@
+# BuildersPlots - Español (España)
+# Archivo de idioma principal para el plugin BuildersPlots
+# Todos los mensajes mostrados a los jugadores o registrados en la consola se definen aquí
+
+messages:
+  # Mensajes para la clase principal del plugin
+  buildersplots:
+    reload_success: "&aArchivos de configuración e idioma recargados correctamente."
+
+  # Mensajes para el manejador de comandos BuildersPlots
+  buildersplotscommand:
+    player_only: "&cEste comando solo puede ser utilizado por jugadores."
+    create_main_only: "&cLa creación de parcelas solo está permitida en el servidor principal."
+    create_usage: "&cUso: /bp create <nombre> <radio>"
+    radius_number: "&cEl radio debe ser un número."
+    create_failed: "&cNo se pudo crear la parcela. El nombre de la parcela ya existe o el radio no es válido."
+    create_success: "&aParcela '%name%' creada con radio %radius%."
+    delete_usage: "&cUso: /bp delete <nombre>"
+    delete_success: "&aParcela '%name%' eliminada correctamente."
+    plot_not_found: "&cParcela '%name%' no encontrada."
+    tp_test_only: "&cLa teletransportación a parcelas solo está permitida en el servidor de pruebas."
+    tp_usage: "&cUso: /bp tp <nombre>"
+    plot_world_not_found: "&cMundo de parcela para '%name%' no encontrado."
+    tp_success: "&aTeletransportado a la parcela '%name%'."
+    leave_test_only: "&cEste comando solo está disponible en el servidor de pruebas."
+    not_in_plot_world: "&c¡No estás en un mundo de parcela!"
+    returned_main_world: "&aHas regresado al mundo principal."
+    unknown_command: "&cComando desconocido. Usa /bp help para obtener ayuda."
+    help_header: "&6=== Comandos de BuildersPlots ==="
+    help_create: "&e/bp create <nombre> <radio> &f- Crear una nueva parcela"
+    help_list: "&e/bp list &f- Listar todas las parcelas disponibles"
+    help_delete: "&e/bp delete <nombre> &f- Eliminar una parcela"
+    help_tp: "&e/bp tp <nombre> &f- Teletransportarse a una parcela"
+
+  # Mensajes de PlotManager para jugadores
+  plotmanager:
+    plot:
+      deleted:
+        teleport: "&cLa parcela en la que estabas ha sido eliminada."
+    world:
+      unloading:
+        teleport: "&cLa parcela se está descargando, has sido teletransportado al mundo principal."
+
+  # Mensajes de BlockHandler para jugadores
+  blockhandler:
+    copy_progress_actionbar: "&aCopiando parcela: &e%percent%%"
+    copy_progress_admin: "&eCopiando parcela &6%plot%&e: &b%percent%%"
+    copy_success: "&a¡La parcela '&6%plot%&e' ha sido copiada correctamente y está lista para usar!"
+    teleport_suggestion: "&ePuedes teletransportarte a la parcela con el comando: &6/bp tp %plot%"
+
+  # Mensajes de PlotHandler para jugadores
+  plothandler:
+    plot_deleted_teleport: "&cLa parcela en la que estabas ha sido eliminada."
+    teleport_test_only: "&cLa teletransportación a parcelas solo está disponible en el servidor de pruebas."
+    plot_not_found: "&cParcela con nombre '%name%' no encontrada."
+    plot_world_not_found: "&cMundo para la parcela '%name%' no encontrado o no cargado."
+    teleporting: "&aTeletransportando a la parcela '%name%'..."
+
+  # Mensajes de ServerCommunication para jugadores
+  servercommunication:
+    loading_blocks_start: "&eComenzando a cargar bloques para la parcela &6%plot%&e..."
+
+  # Mensajes de UI del menú de lista de parcelas
+  plotlistmenu:
+    no_plots: "&eAún no se han creado parcelas."
+    inventory_title: "Parcelas Disponibles"
+    plot_name: "&a%name%"
+    creator: "&7Creador: %creator%"
+    radius: "&7Radio: %radius% bloques"
+    world: "&7Mundo: %world%"
+    click_teleport: "&eHaz clic para teletransportarte"
+
+  # Mensajes de UI del listener del menú de parcelas
+  plotmenulistener:
+    world_not_found: "&cMundo de parcela para '%name%' no encontrado."
+    teleported: "&aTeletransportado a la parcela '%name%'."
+    plot_info: "&eInformación de la parcela: %name% (Radio: %radius%)"
+
+# Mensajes de consola - se registran en la consola del servidor
+logs:
+  # Logs de la clase principal BuildersPlots
+  buildersplots:
+    loading: "&aCargando BuildersPlots v%version%..."
+    enabled: "&a¡Plugin BuilderPlots activado correctamente!"
+    disabled: "&ePlugin BuilderPlots desactivado"
+    server_type_set: "&bIniciando BuildersPlots como servidor %type%"
+    config_reloaded: "&aArchivos de configuración e idioma recargados"
+
+  # Logs de PlotManager
+  plotmanager:
+    # Operaciones de directorio
+    directory:
+      created: "&bDirectorio de parcelas creado: %path%"
+      delete_error: "&cError al eliminar directorio: %error%"
+      delete_failed: "&cNo se pudo eliminar el directorio: %path%"
+      still_exists: "&eEl directorio aún existe después del intento de eliminación: %path%"
+
+    # Operaciones de parcela
+    plot:
+      created: "&aNueva parcela creada: %name% (Propietario: %owner%, Radio: %radius%)"
+      deleted: "&eParcela eliminada: %name%"
+      updated: "&aParcela actualizada: %name%"
+
+    # Operaciones de colección de parcelas
+    plots:
+      saved: "&aGuardadas %count% parcelas"
+      loaded: "&aCargadas %count% parcelas"
+      save_error: "&cNo se pudieron guardar las parcelas: %error%"
+      load_error: "&cNo se pudieron cargar las parcelas: %error%"
+
+    # Operaciones de autoguardado
+    autosave:
+      disabled: "&eAutoguardado de mundo desactivado"
+      enabled: "&aAutoguardado de mundo activado con intervalo de %interval% minutos"
+      stopped: "&eAutoguardado de mundo detenido"
+      start: "&aIniciando guardado automático de mundos de parcelas..."
+      complete: "&aAutoguardado completado"
+
+    # Operaciones de mundos (masivas)
+    worlds:
+      loading: "&aCargando mundos de parcelas..."
+      loaded: "&aCargados %count% mundos de parcelas"
+      unloading: "&eDescargando mundos de parcelas..."
+      unloaded: "&eDescargados %count% mundos de parcelas"
+      saved: "&aGuardados %count% mundos"
+
+    # Operaciones de un solo mundo
+    world:
+      delete_error: "&cError al eliminar mundo: %name%: %error%"
+      delete_timeout: "&cTiempo de espera agotado al eliminar mundo: %name%: %error%"
+      delete_schedule_error: "&cError al programar eliminación de mundo: %name%: %error%"
+      delete_thread_error: "&cIntento de eliminar mundo desde un hilo no principal"
+      unload_failed: "&cNo se pudo descargar el mundo: %name%"
+      unload_error: "&cError al descargar mundo %name%: %error%"
+      unload_empty_failed: "&cNo se pudo descargar el mundo vacío: %name%"
+      unloaded: "&eMundo descargado: %name%"
+      unloaded_empty: "&eMundo vacío descargado: %name%"
+      unload_scheduled: "&eProgramada descarga de mundo vacío para %name% en %delay% minutos"
+      files_delete_error: "&cError al eliminar archivos de mundo: %error%"
+      moved_to_plugin: "&aMundo %name% movido a la carpeta del plugin"
+      already_loaded: "&eEl mundo %name% ya está cargado"
+      found_in_root: "&bEncontrado mundo de parcela en el directorio raíz, moviendo a la carpeta del plugin..."
+      moved_success: "&aMundo %name% movido correctamente a la carpeta del plugin"
+      folder_not_exists: "&eLa carpeta del mundo no existe: %name%"
+      loading: "&aCargando mundo de parcela: %name% desde %path%"
+      loaded_success: "&a¡Mundo %name% cargado correctamente desde %path%!"
+      create_failed: "&cNo se pudo crear el mundo: %name%"
+      load_error: "&cError al cargar mundo %name%: %error%"
+      move_error: "&cError al mover mundo: %name%: %error%"
+      plugin_delete_failed: "&cNo se pudo eliminar completamente el mundo de la carpeta del plugin: %name%"
+      root_delete_failed: "&cNo se pudo eliminar completamente el mundo del directorio raíz: %name%"
+      service_files_delete_error: "&cError al eliminar archivos de servicio del mundo: %error%"
+
+    # Operaciones de archivo
+    file:
+      delete_failed: "&cNo se pudo eliminar el archivo: %path%"
+      force_delete_failed: "&cNo se pudo forzar la eliminación del archivo: %path%"
+
+    # Otras operaciones
+    chunk:
+      cache_clear_failed: "&cNo se pudo limpiar la caché de chunks: %error%"
+
+    # Cierre
+    shutdown:
+      complete: "&aCierre de PlotManager completado"
+
+  # Logs de BlockHandler
+  blockhandler:
+    not_main_server: "Solicitud de bloques de parcela recibida pero no en el servidor PRINCIPAL"
+    processing_request: "Procesando solicitud de bloques para parcela: %plot%"
+    plot_not_found: "Parcela no encontrada: %name%"
+    not_test_server: "Bloques de parcela recibidos pero no en el servidor de PRUEBAS"
+    plot_not_found_for_blocks: "Parcela no encontrada para bloques: %name%"
+    world_not_found: "Mundo no encontrado para parcela: %name%"
+    block_set_error: "Error al establecer bloque: %error%"
+    batch_error: "Error al manejar lote de bloques: %error%"
+    scan_progress: "Progreso de escaneo de parcela: %scanned%/%total% chunks (%percent%%) para parcela %plot%"
+    scan_complete: "Todos los bloques recibidos para parcela: %plot%"
+    copying_completed: "Copia de parcela completada para: %plot%"
+    finalizing_error: "Error al finalizar copia de parcela: %error%"
+
+  # Logs de PlotHandler
+  plothandler:
+    world_exists: "El mundo ya existe: %name%"
+    creating_world: "Creando nuevo mundo para parcela: %plot%"
+    reflection_failed: "No se pudo establecer la carpeta del mundo mediante reflexión: %error%"
+    world_created: "¡Mundo %name% creado correctamente en carpeta personalizada!"
+    spawn_set: "Punto de aparición establecido en el centro original de la parcela: %x%, %y%, %z%"
+    world_configured: "Mundo %name% configurado correctamente."
+    requesting_blocks: "Solicitando bloques del servidor principal para parcela: %plot%"
+    configure_failed: "No se pudo configurar el mundo: %error%"
+    create_world_failed: "No se pudo crear el mundo %name%"
+    create_world_error: "No se pudo crear el mundo: %error%"
+    plot_not_found_deletion: "Parcela no encontrada para eliminación: %name%"
+    world_not_found_deletion: "Mundo no encontrado para eliminación: %name%"
+    world_unloaded: "Mundo descargado: %name%"
+    world_folder_deleted: "Carpeta de mundo eliminada: %name%"
+    delete_folder_failed: "No se pudo eliminar la carpeta del mundo: %name%"
+    unload_world_failed: "No se pudo descargar el mundo: %name%"
+    world_unload_error: "Error al descargar mundo: %error%"
+
+  # Logs de ServerCommunication
+  servercommunication:
+    # Configuración de comunicación del servidor
+    plots_folder_created: "Directorio de parcelas creado: %path%"
+    communication_start_failed: "No se pudo iniciar la comunicación: %error%"
+    connections_close_error: "Error al cerrar conexiones: %error%"
+
+    # Manejo de mensajes de red
+    received_message: "Mensaje recibido de tipo: %type%"
+    deserialize_plot_failed: "No se pudieron deserializar los datos de la parcela"
+    plot_create_error: "Error al procesar PLOT_CREATE: %error%"
+    plot_delete_error: "Error al procesar PLOT_DELETE: %error%"
+    deserialize_block_failed: "No se pudieron deserializar los datos del bloque"
+    block_change_error: "Error al procesar BLOCK_CHANGE: %error%"
+    request_plot_blocks_error: "Error al procesar REQUEST_PLOT_BLOCKS: %error%"
+    plot_blocks_error: "Error al procesar PLOT_BLOCKS: %error%"
+    scan_progress_error: "Error al procesar PLOT_SCAN_PROGRESS: %error%"
+    scan_complete_error: "Error al procesar PLOT_SCAN_COMPLETE: %error%"
+    message_processing_error: "Error al procesar mensaje: %error%"
+    messages_sending_error: "Error al enviar mensajes: %error%"
+
+    # Comunicación del servidor principal
+    starting_server: "&bIniciando comunicación del servidor principal en puerto %port%"
+    server_socket_error: "&cError en socket del servidor principal: %error%"
+    server_start_failed: "&cNo se pudo iniciar el servidor principal: %error%"
+
+    # Conexión del cliente
+    connecting: "&bConectando al servidor principal en %ip%:%port%"
+    connection_lost: "&cConexión con el servidor principal perdida: %error%"
+    connection_failed: "&cNo se pudo conectar al servidor principal: %error%"
+
+    # Autenticación
+    auth_failed: "Autenticación fallida"
+    auth_success: "Autenticación exitosa"
+    client_disconnected: "&eCliente desconectado: %error%"
+
+    # Operaciones de parcela
+    plot_sending: "Enviando creación de parcela: %json%"
+    plot_serialize_error: "Error al serializar parcela para envío: %error%"
+    block_serialize_error: "Error al serializar datos de bloque para envío: %error%"
+    requesting_blocks: "Solicitando bloques para parcela: %plot%"

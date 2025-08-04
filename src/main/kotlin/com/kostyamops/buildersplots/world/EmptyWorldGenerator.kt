@@ -6,7 +6,6 @@ import org.bukkit.generator.ChunkGenerator
 import org.bukkit.generator.WorldInfo
 import org.bukkit.block.Biome
 import java.util.Random
-
 /**
  * Генератор пустых миров
  */

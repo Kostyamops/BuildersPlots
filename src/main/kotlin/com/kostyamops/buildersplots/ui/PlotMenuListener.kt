@@ -34,15 +34,19 @@ class PlotMenuListener(private val plugin: BuildersPlots, private val inventory:
             val world = Bukkit.getWorld(worldName)
 
             if (world == null) {
-                player.sendMessage("${ChatColor.RED}Plot world for '$displayName' not found.")
+                plugin.localizationManager.sendMessage(player, "messages.plotmenulistener.world_not_found",
+                    "%name%" to displayName)
                 return
             }
 
             player.closeInventory()
             player.teleport(world.getSpawnLocation())
-            player.sendMessage("${ChatColor.GREEN}Teleported to plot '$displayName'.")
+            plugin.localizationManager.sendMessage(player, "messages.plotmenulistener.teleported",
+                "%name%" to displayName)
         } else {
-            player.sendMessage("${ChatColor.YELLOW}Plot information: ${plot.name} (Radius: ${plot.radius})")
+            plugin.localizationManager.sendMessage(player, "messages.plotmenulistener.plot_info",
+                "%name%" to plot.name,
+                "%radius%" to plot.radius.toString())
         }
     }
 

@@ -8,6 +8,6 @@ author: Kostyamops
 commands:
   bp:
     description: BuildersPlots main command
-    usage: /<command> [create|list|delete] [args...]
+    usage: /<command> [create|list|tp|leave|delete|help] [args...]
     permission: buildersplots.use
     aliases: [buildersplots]
