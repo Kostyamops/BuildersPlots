@@ -1,7 +1,5 @@
 # BuildersPlots - English (United States)
 # Main language file for the BuildersPlots plugin
-# Last updated: 2025-08-04 01:46:10
-# Updated by: Kostyamops
 # All messages displayed to players or logged to console are defined here
 
 messages:
@@ -11,6 +9,7 @@ messages:
 
   # Messages for the BuildersPlots command handler
   buildersplotscommand:
+    no_permission: "&cYou don't have permission to use this command."
     player_only: "&cThis command can only be used by players."
     create_main_only: "&cPlot creation is only allowed on the main server."
     create_usage: "&cUsage: /bp create <name> <radius>"
@@ -41,6 +40,24 @@ messages:
     try_ping: "&eTry using &6/bp ping&e to check the connection."
     help_ping: "&e/bp ping &f- Check connection with the other server"
     help_leave: "&e/bp leave &f- Leave the plot world"
+    help_members: "&e/bp members <plot> <add/remove/list> [player] &f- Manage plot members"
+    not_owner: "&cYou are not the creator of this plot and don't have admin rights."
+    not_owner_delete: "&cYou cannot delete this plot as you are not the creator."
+    members_usage: "&cUsage: /bp members <plot> <add/remove/list> [player]"
+    members_add_usage: "&cUsage: /bp members <plot> add <player>"
+    members_remove_usage: "&cUsage: /bp members <plot> remove <player>"
+    members_unknown_action: "&cUnknown action. Use add, remove, or list."
+    no_members: "&eThe plot &6%name%&e doesn't have any members."
+    members_header: "&eMembers of plot &6%name%&e (%count%):"
+    member_entry: "&e- &6%name%"
+    member_added: "&aPlayer &6%name%&a was added to plot &6%plot%&a."
+    member_already_exists: "&cPlayer &6%name%&c is already a member of plot &6%plot%&c."
+    member_removed: "&aPlayer &6%name%&a was removed from plot &6%plot%&a."
+    member_not_found: "&cPlayer &6%name%&c is not a member of plot &6%plot%&c."
+    player_not_found: "&cPlayer &6%name%&c is not online."
+    added_to_plot: "&aYou have been added to plot &6%plot%&a by &6%owner%&a."
+    removed_from_plot: "&cYou have been removed from plot &6%plot%&c by &6%owner%&c."
+    no_plot_access: "&cYou don't have access to this plot."
 
   # PlotManager messages for players
   plotmanager:
@@ -50,6 +67,9 @@ messages:
     world:
       unloading:
         teleport: "&cThe plot is being unloaded, you have been teleported to the main world."
+    member:
+      added: "Player %player% was added as member to plot %plot%"
+      removed: "Member with UUID %uuid% was removed from plot %plot%"
 
   # BlockHandler messages for players
   blockhandler:

@@ -10,6 +10,7 @@ import org.bukkit.entity.Player
 import java.io.File
 import java.io.FileReader
 import java.io.FileWriter
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 class PlotManager(val plugin: BuildersPlots) {
@@ -152,6 +153,77 @@ class PlotManager(val plugin: BuildersPlots) {
 
     fun stopAutoSave() {
         autoSaveManager.stopAutoSave()
+    }
+
+    fun addMemberToPlot(plotName: String, player: Player, targetUUID: UUID, targetName: String): Boolean {
+        val plot = getPlot(plotName) ?: return false
+
+        // Check if player has permission to add members
+        if (!plot.isCreator(player) && !player.isOp() && !player.hasPermission("buildersplots.admin.member.manage")) {
+            return false
+        }
+
+        // Add member
+        if (!plot.addMember(targetUUID, targetName)) {
+            return false // Member already exists
+        }
+
+        // Save changes
+        savePlots()
+
+        // Send update to other server if on MAIN server
+        if (plugin.serverType == ServerType.MAIN) {
+            plugin.communicationManager.sendPlotCreation(plot)
+        }
+
+        plugin.localizationManager.info("plotmanager.member.added",
+            "%plot%" to plotName, "%player%" to targetName)
+
+        return true
+    }
+
+    /**
+     * Removes a member from a plot
+     * @param plotName name of the plot
+     * @param player player executing the action (must be creator or admin)
+     * @param targetUUID UUID of the member to remove
+     * @return true if member was successfully removed
+     */
+    fun removeMemberFromPlot(plotName: String, player: Player, targetUUID: UUID): Boolean {
+        val plot = getPlot(plotName) ?: return false
+
+        // Check if player has permission to remove members
+        if (!plot.isCreator(player) && !player.isOp() && !player.hasPermission("buildersplots.admin.member.manage")) {
+            return false
+        }
+
+        // Remove member
+        if (!plot.removeMember(targetUUID)) {
+            return false // Member not found
+        }
+
+        // Save changes
+        savePlots()
+
+        // Send update to other server if on MAIN server
+        if (plugin.serverType == ServerType.MAIN) {
+            plugin.communicationManager.sendPlotCreation(plot)
+        }
+
+        plugin.localizationManager.info("plotmanager.member.removed",
+            "%plot%" to plotName, "%uuid%" to targetUUID.toString())
+
+        return true
+    }
+
+    /**
+     * Gets the list of members for a plot
+     * @param plotName name of the plot
+     * @return list of members or null if plot not found
+     */
+    fun getPlotMembers(plotName: String): List<PlotMember>? {
+        val plot = getPlot(plotName) ?: return null
+        return plot.members.toList()
     }
 
     fun shutdown() {

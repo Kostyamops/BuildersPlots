@@ -14,6 +14,7 @@ class HelpCommand(private val plugin: BuildersPlots) : SubCommand {
         plugin.localizationManager.sendMessage(player, "messages.buildersplotscommand.help_ping")
         plugin.localizationManager.sendMessage(player, "messages.buildersplotscommand.help_create")
         plugin.localizationManager.sendMessage(player, "messages.buildersplotscommand.help_list")
+        plugin.localizationManager.sendMessage(player, "messages.buildersplotscommand.help_members")
         plugin.localizationManager.sendMessage(player, "messages.buildersplotscommand.help_delete")
 
         if (plugin.serverType == ServerType.TEST) {

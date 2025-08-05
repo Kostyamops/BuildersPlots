@@ -8,6 +8,8 @@ import org.bukkit.entity.Player
 
 /**
  * Command to teleport to a plot world
+ * @author Kostyamops
+ * @updated 2025-08-04 03:46:16
  */
 class TeleportCommand(private val plugin: BuildersPlots) : SubCommand {
 
@@ -28,6 +30,12 @@ class TeleportCommand(private val plugin: BuildersPlots) : SubCommand {
         if (plot == null) {
             plugin.localizationManager.sendMessage(player, "messages.buildersplotscommand.plot_not_found",
                 "%name%" to plotName)
+            return
+        }
+
+        // Check if player has access to the plot
+        if (!plot.hasAccess(player)) {
+            plugin.localizationManager.sendMessage(player, "messages.buildersplotscommand.no_plot_access")
             return
         }
 

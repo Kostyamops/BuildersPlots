@@ -1,135 +1,177 @@
 # BuildersPlots - Русский (Россия)
 # Основной языковой файл для плагина BuildersPlots
-# Здесь определены все сообщения, отображаемые игрокам или записываемые в консоль
+# Все сообщения, отображаемые игрокам или записываемые в консоль, определены здесь
 
 messages:
-  # Сообщения для основного класса плагина
+  # Сообщения основного класса плагина
   buildersplots:
-    reload_success: "&aФайлы конфигурации и языков успешно перезагружены."
+    reload_success: "&aКонфигурация и языковые файлы успешно перезагружены."
 
-  # Сообщения для обработчика команд BuildersPlots
+  # Сообщения обработчика команд BuildersPlots
   buildersplotscommand:
+    no_permission: "&cУ вас нет прав для использования этой команды."
     player_only: "&cЭта команда может использоваться только игроками."
-    create_main_only: "&cСоздание плота разрешено только на основном сервере."
+    create_main_only: "&cСоздание участков разрешено только на основном сервере."
     create_usage: "&cИспользование: /bp create <название> <радиус>"
     radius_number: "&cРадиус должен быть числом."
-    create_failed: "&cНе удалось создать плот. Возможно, название плота уже существует или радиус недействителен."
-    create_success: "&aПлот '%name%' создан с радиусом %radius%."
+    create_failed: "&cНе удалось создать участок. Название уже существует или радиус недопустим."
+    create_success: "&aУчасток '%name%' создан с радиусом %radius%."
     delete_usage: "&cИспользование: /bp delete <название>"
-    delete_success: "&aПлот '%name%' успешно удален."
-    plot_not_found: "&cПлот '%name%' не найден."
-    tp_test_only: "&cТелепортация на плот разрешена только на тестовом сервере."
+    delete_success: "&aУчасток '%name%' успешно удалён."
+    plot_not_found: "&cУчасток '%name%' не найден."
+    tp_test_only: "&cТелепортация на участки разрешена только на тестовом сервере."
     tp_usage: "&cИспользование: /bp tp <название>"
-    plot_world_not_found: "&cМир плота '%name%' не найден."
-    tp_success: "&aТелепортация на плот '%name%'."
+    plot_world_not_found: "&cМир для участка '%name%' не найден."
+    tp_success: "&aТелепортирован на участок '%name%'."
     leave_test_only: "&cЭта команда доступна только на тестовом сервере."
-    not_in_plot_world: "&cВы не находитесь в мире плота!"
+    not_in_plot_world: "&cВы не находитесь в мире участков!"
     returned_main_world: "&aВы вернулись в основной мир."
-    unknown_command: "&cНеизвестная команда. Используйте /bp help для помощи."
+    unknown_command: "&cНеизвестная команда. Используйте /bp help для справки."
     help_header: "&6=== Команды BuildersPlots ==="
-    help_create: "&e/bp create <название> <радиус> &f- Создать новый плот"
-    help_list: "&e/bp list &f- Список всех доступных плотов"
-    help_delete: "&e/bp delete <название> &f- Удалить плот"
-    help_tp: "&e/bp tp <название> &f- Телепортироваться на плот"
+    help_create: "&e/bp create <название> <радиус> &f- Создать новый участок"
+    help_list: "&e/bp list &f- Список доступных участков"
+    help_delete: "&e/bp delete <название> &f- Удалить участок"
+    help_tp: "&e/bp tp <название> &f- Телепортироваться на участок"
+    ping_sending: "&eОтправка ping на другой сервер..."
+    ping_success: "&aСоединение успешно! Время ответа: &e%time%мс"
+    ping_failed: "&cНет ответа от другого сервера. Соединение не удалось."
+    ping_error: "&cОшибка при ping: %error%"
+    no_connection: "&cНет соединения с другим сервером. Команда недоступна."
+    try_ping: "&eПопробуйте использовать &6/bp ping&e для проверки соединения."
+    help_ping: "&e/bp ping &f- Проверить соединение с другим сервером"
+    help_leave: "&e/bp leave &f- Покинуть мир участков"
+    help_members: "&e/bp members <участок> <add/remove/list> [игрок] &f- Управление участниками"
+    not_owner: "&cВы не являетесь создателем этого участка и не имеете прав администратора."
+    not_owner_delete: "&cВы не можете удалить этот участок, так как не являетесь его создателем."
+    members_usage: "&cИспользование: /bp members <участок> <add/remove/list> [игрок]"
+    members_add_usage: "&cИспользование: /bp members <участок> add <игрок>"
+    members_remove_usage: "&cИспользование: /bp members <участок> remove <игрок>"
+    members_unknown_action: "&cНеизвестное действие. Используйте add, remove или list."
+    no_members: "&eУ участка &6%name%&e нет участников."
+    members_header: "&eУчастники участка &6%name%&e (%count%):"
+    member_entry: "&e- &6%name%"
+    member_added: "&aИгрок &6%name%&a добавлен к участку &6%plot%&a."
+    member_already_exists: "&cИгрок &6%name%&c уже является участником &6%plot%&c."
+    member_removed: "&aИгрок &6%name%&a удалён из участка &6%plot%&a."
+    member_not_found: "&cИгрок &6%name%&c не является участником &6%plot%&c."
+    player_not_found: "&cИгрок &6%name%&c не в сети."
+    added_to_plot: "&aВы добавлены к участку &6%plot%&a игроком &6%owner%&a."
+    removed_from_plot: "&cВы удалены из участка &6%plot%&c игроком &6%owner%&c."
+    no_plot_access: "&cУ вас нет доступа к этому участку."
 
   # Сообщения PlotManager для игроков
   plotmanager:
     plot:
       deleted:
-        teleport: "&cПлот, на котором вы находились, был удален."
+        teleport: "&cУчасток, на котором вы находились, был удалён."
     world:
       unloading:
-        teleport: "&cПлот выгружается, вы были телепортированы в основной мир."
+        teleport: "&cУчасток выгружается, вы телепортированы в основной мир."
+    member:
+      added: "Игрок %player% добавлен как участник участка %plot%"
+      removed: "Участник с UUID %uuid% удалён из участка %plot%"
 
   # Сообщения BlockHandler для игроков
   blockhandler:
-    copy_progress_actionbar: "&aКопирование плота: &e%percent%%"
-    copy_progress_admin: "&eКопирование плота &6%plot%&e: &b%percent%%"
-    copy_success: "&aПлот '&6%plot%&e' был успешно скопирован и готов к использованию!"
-    teleport_suggestion: "&eВы можете телепортироваться на плот командой: &6/bp tp %plot%"
+    copy_progress_actionbar: "&aКопирование участка: &e%percent%%"
+    copy_progress_admin: "&eКопирование участка &6%plot%&e: &b%percent%%"
+    copy_success: "&eУчасток '&6%plot%&e' успешно скопирован и готов к использованию!"
+    teleport_suggestion: "&eВы можете телепортироваться на участок командой: &6/bp tp %plot%"
 
   # Сообщения PlotHandler для игроков
   plothandler:
-    plot_deleted_teleport: "&cПлот, на котором вы находились, был удален."
-    teleport_test_only: "&cТелепортация на плот доступна только на тестовом сервере."
-    plot_not_found: "&cПлот с названием '%name%' не найден."
-    plot_world_not_found: "&cМир для плота '%name%' не найден или не загружен."
-    teleporting: "&aТелепортация на плот '%name%'..."
+    plot_deleted_teleport: "&cУчасток, на котором вы находились, был удалён."
+    teleport_test_only: "&cТелепортация на участки доступна только на тестовом сервере."
+    plot_not_found: "&cУчасток с названием '%name%' не найден."
+    plot_world_not_found: "&cМир для участка '%name%' не найден или не загружен."
+    teleporting: "&aТелепортация на участок '%name%'..."
 
   # Сообщения ServerCommunication для игроков
   servercommunication:
-    loading_blocks_start: "&eНачинается загрузка блоков для плота &6%plot%&e..."
+    loading_blocks_start: "&eНачало загрузки блоков для участка &6%plot%&e..."
+    connection_established: "Соединение с удалённым сервером установлено"
+    connection_lost: "&eСоединение с удалённым сервером потеряно"
+    ping_received: "Получен ping запрос от %type% сервера"
+    ping_response_received: "Получен ping ответ от %type% сервера (время: %time%мс)"
+    ping_error: "&cОшибка обработки ping запроса: %error%"
+    ping_response_error: "&cОшибка обработки ping ответа: %error%"
 
-  # Сообщения меню списка плотов UI
+  # Сообщения UI меню списка участков
   plotlistmenu:
-    no_plots: "&eПлоты еще не созданы."
-    inventory_title: "Доступные плоты"
-    plot_name: "&a%name%"
-    creator: "&7Создатель: %creator%"
-    radius: "&7Радиус: %radius% блоков"
-    world: "&7Мир: %world%"
-    click_teleport: "&eНажмите для телепортации"
+    no_plots: "&eУчастки ещё не созданы."
+    inventory_title: "[NOPREFIX]Доступные участки"
+    plot_name: "[NOPREFIX]&a%name%"
+    creator: "[NOPREFIX]&7Создатель: %creator%"
+    radius: "[NOPREFIX]&7Радиус: %radius% блоков"
+    world: "[NOPREFIX]&7Мир: %world%"
+    click_teleport: "[NOPREFIX]&eНажмите для телепортации"
 
-  # Сообщения обработчика меню плотов UI
+  # Сообщения UI слушателя меню участков
   plotmenulistener:
-    world_not_found: "&cМир плота '%name%' не найден."
-    teleported: "&aТелепортация на плот '%name%'."
-    plot_info: "&eИнформация о плоте: %name% (Радиус: %radius%)"
+    world_not_found: "&cМир для участка '%name%' не найден."
+    teleported: "&aТелепортирован на участок '%name%'."
+    plot_info: "&eИнформация об участке: %name% (Радиус: %radius%)"
 
-# Сообщения консоли - они записываются в консоль сервера
+# Сообщения логов консоли - записываются в консоль сервера
 logs:
   # Логи основного класса BuildersPlots
   buildersplots:
-    loading: "&aЗагрузка BuildersPlots v%version%..."
-    enabled: "&aПлагин BuilderPlots успешно включен!"
-    disabled: "&eПлагин BuilderPlots отключен"
-    server_type_set: "&bЗапуск BuildersPlots как %type% сервер"
-    config_reloaded: "&aФайлы конфигурации и языков перезагружены"
+    loading: "Загрузка BuildersPlots v%version%..."
+    enabled: "Плагин BuildersPlots успешно включён!"
+    disabled: "&eПлагин BuilderPlots выключен"
+    server_type_set: "Запуск BuildersPlots как %type% сервер"
+    config_reloaded: "Конфигурация и языковые файлы перезагружены"
+    invalid_server_type: "&eНеверный тип сервера: %type%. Используется тип MAIN."
+    commands_registered: "Все команды успешно зарегистрированы"
+    test_worlds_loaded: "Миры тестового сервера успешно загружены"
+    network_stopping: "&eОстановка сетевого взаимодействия"
+    enable_failed: "&cОшибка включения BuildersPlots: %error%"
+    disable_failed: "&cОшибка выключения BuildersPlots: %error%"
 
   # Логи PlotManager
   plotmanager:
     # Операции с директориями
     directory:
-      created: "&bСоздана директория плотов: %path%"
+      created: "Создана директория участков: %path%"
       delete_error: "&cОшибка удаления директории: %error%"
       delete_failed: "&cНе удалось удалить директорию: %path%"
-      still_exists: "&eДиректория все еще существует после попытки удаления: %path%"
+      still_exists: "&eДиректория всё ещё существует после попытки удаления: %path%"
 
-    # Операции с плотами
+    # Операции с участками
     plot:
-      created: "&aСоздан новый плот: %name% (Владелец: %owner%, Радиус: %radius%)"
-      deleted: "&eУдален плот: %name%"
-      updated: "&aОбновлен плот: %name%"
+      created: "Создан новый участок: &e%name%&f (Владелец: %owner%, Радиус: &e%radius%&f)"
+      deleted: "&eУдалён участок: %name%"
+      updated: "Обновлён участок: &e%name%"
 
-    # Операции с коллекцией плотов
+    # Операции с коллекцией участков
     plots:
-      saved: "&aСохранено %count% плотов"
-      loaded: "&aЗагружено %count% плотов"
-      save_error: "&cНе удалось сохранить плоты: %error%"
-      load_error: "&cНе удалось загрузить плоты: %error%"
+      saved: "Сохранено &e%count%&f участков"
+      loaded: "Загружено &e%count%&f участков"
+      save_error: "&cОшибка сохранения участков: %error%"
+      load_error: "&cОшибка загрузки участков: %error%"
 
     # Операции автосохранения
     autosave:
-      disabled: "&eАвтосохранение мира отключено"
-      enabled: "&aАвтосохранение мира включено с интервалом %interval% минут"
-      stopped: "&eАвтосохранение мира остановлено"
-      start: "&aНачало автоматического сохранения миров плотов..."
-      complete: "&aАвтосохранение завершено"
+      disabled: "&eАвтосохранение миров отключено"
+      enabled: "Автосохранение миров включено с интервалом &e%interval%&f минут"
+      stopped: "&eАвтосохранение миров остановлено"
+      start: "Запуск автоматического сохранения миров участков..."
+      complete: "Автосохранение завершено"
 
-    # Операции с мирами (массовые)
+    # Операции с мирами (групповые)
     worlds:
-      loading: "&aЗагрузка миров плотов..."
-      loaded: "&aЗагружено %count% миров плотов"
-      unloading: "&eВыгрузка миров плотов..."
-      unloaded: "&eВыгружено %count% миров плотов"
-      saved: "&aСохранено %count% миров"
+      loading: "Загрузка миров участков..."
+      loaded: "Загружено &e%count%&f миров участков"
+      unloading: "&eВыгрузка миров участков..."
+      unloaded: "&eВыгружено &e%count%&f миров участков"
+      saved: "Сохранено &e%count%&f миров"
 
-    # Операции с одним миром
+    # Операции с отдельным миром
     world:
       delete_error: "&cОшибка удаления мира: %name%: %error%"
       delete_timeout: "&cТаймаут при удалении мира: %name%: %error%"
       delete_schedule_error: "&cОшибка планирования удаления мира: %name%: %error%"
-      delete_thread_error: "&cПопытка удалить мир из не-основного потока"
+      delete_thread_error: "&cПопытка удалить мир не из основного потока"
       unload_failed: "&cНе удалось выгрузить мир: %name%"
       unload_error: "&cОшибка выгрузки мира %name%: %error%"
       unload_empty_failed: "&cНе удалось выгрузить пустой мир: %name%"
@@ -137,13 +179,13 @@ logs:
       unloaded_empty: "&eВыгружен пустой мир: %name%"
       unload_scheduled: "&eЗапланирована выгрузка пустого мира %name% через %delay% минут"
       files_delete_error: "&cОшибка удаления файлов мира: %error%"
-      moved_to_plugin: "&aМир %name% перемещен в папку плагина"
+      moved_to_plugin: "Мир &e%name%&f перемещён в папку плагина"
       already_loaded: "&eМир %name% уже загружен"
-      found_in_root: "&bНайден мир плота в корневой директории, перемещение в папку плагина..."
-      moved_success: "&aМир %name% успешно перемещен в папку плагина"
+      found_in_root: "Найден мир участков в корневой директории, перемещение в папку плагина..."
+      moved_success: "Мир &e%name%&f успешно перемещён в папку плагина"
       folder_not_exists: "&eПапка мира не существует: %name%"
-      loading: "&aЗагрузка мира плота: %name% из %path%"
-      loaded_success: "&aМир %name% успешно загружен из %path%!"
+      loading: "Загрузка мира участков: &e%name%&f из %path%"
+      loaded_success: "Мир &e%name%&f успешно загружен из %path%!"
       create_failed: "&cНе удалось создать мир: %name%"
       load_error: "&cОшибка загрузки мира %name%: %error%"
       move_error: "&cОшибка перемещения мира: %name%: %error%"
@@ -156,87 +198,91 @@ logs:
       delete_failed: "&cНе удалось удалить файл: %path%"
       force_delete_failed: "&cНе удалось принудительно удалить файл: %path%"
 
-    # Другие операции
+    # Прочие операции
     chunk:
       cache_clear_failed: "&cНе удалось очистить кэш чанков: %error%"
 
     # Завершение работы
     shutdown:
-      complete: "&aЗавершение работы PlotManager выполнено"
+      complete: "Завершение работы PlotManager выполнено"
 
   # Логи BlockHandler
   blockhandler:
-    not_main_server: "Получен запрос на блоки плота, но не на ОСНОВНОМ сервере"
-    processing_request: "Обработка запроса блоков для плота: %plot%"
-    plot_not_found: "Плот не найден: %name%"
-    not_test_server: "Получены блоки плота, но не на ТЕСТОВОМ сервере"
-    plot_not_found_for_blocks: "Плот не найден для блоков: %name%"
-    world_not_found: "Мир не найден для плота: %name%"
-    block_set_error: "Ошибка установки блока: %error%"
-    batch_error: "Ошибка обработки пакета блоков: %error%"
-    scan_progress: "Прогресс сканирования плота: %scanned%/%total% чанков (%percent%%) для плота %plot%"
-    scan_complete: "Все блоки получены для плота: %plot%"
-    copying_completed: "Копирование плота завершено для: %plot%"
-    finalizing_error: "Ошибка завершения копирования плота: %error%"
+    not_main_server: "&eПолучен запрос блоков участка, но не на MAIN сервере"
+    processing_request: "Обработка запроса блоков для участка: &e%plot%"
+    plot_not_found: "&cУчасток не найден: %name%"
+    not_test_server: "&eПолучены блоки участка, но не на TEST сервере"
+    plot_not_found_for_blocks: "&cУчасток не найден для блоков: %name%"
+    world_not_found: "&cМир не найден для участка: %name%"
+    block_set_error: "&cОшибка установки блока: %error%"
+    batch_error: "&cОшибка обработки пакета блоков: %error%"
+    scan_progress: "Прогресс сканирования участка: &e%scanned%&f/&e%total%&f чанков (&e%percent%%&f) для участка &e%plot%"
+    scan_complete: "Все блоки получены для участка: &e%plot%"
+    copying_completed: "Копирование участка завершено для: &e%plot%"
+    finalizing_error: "&cОшибка завершения копирования участка: %error%"
 
   # Логи PlotHandler
   plothandler:
-    world_exists: "Мир уже существует: %name%"
-    creating_world: "Создание нового мира для плота: %plot%"
-    reflection_failed: "Не удалось установить папку мира через рефлексию: %error%"
-    world_created: "Мир %name% успешно создан в пользовательской папке!"
-    spawn_set: "Установлена точка спавна в оригинальном центре плота: %x%, %y%, %z%"
-    world_configured: "Мир %name% успешно настроен."
-    requesting_blocks: "Запрос блоков с основного сервера для плота: %plot%"
-    configure_failed: "Не удалось настроить мир: %error%"
-    create_world_failed: "Не удалось создать мир %name%"
-    create_world_error: "Не удалось создать мир: %error%"
-    plot_not_found_deletion: "Плот не найден для удаления: %name%"
-    world_not_found_deletion: "Мир не найден для удаления: %name%"
-    world_unloaded: "Мир выгружен: %name%"
-    world_folder_deleted: "Папка мира удалена: %name%"
-    delete_folder_failed: "Не удалось удалить папку мира: %name%"
-    unload_world_failed: "Не удалось выгрузить мир: %name%"
-    world_unload_error: "Ошибка выгрузки мира: %error%"
+    world_exists: "&eМир уже существует: %name%"
+    creating_world: "Создание нового мира для участка: &e%plot%"
+    reflection_failed: "&cНе удалось установить папку мира через рефлексию: %error%"
+    world_created: "Мир &e%name%&f успешно создан в пользовательской папке!"
+    spawn_set: "Установлена точка спавна в центре участка: &e%x%&f, &e%y%&f, &e%z%"
+    world_configured: "Мир &e%name%&f успешно настроен"
+    requesting_blocks: "Запрос блоков с основного сервера для участка: &e%plot%"
+    configure_failed: "&cОшибка настройки мира: %error%"
+    create_world_failed: "&cНе удалось создать мир %name%"
+    create_world_error: "&cОшибка создания мира: %error%"
+    plot_not_found_deletion: "&cУчасток не найден для удаления: %name%"
+    world_not_found_deletion: "&cМир не найден для удаления: %name%"
+    world_unloaded: "Мир выгружен: &e%name%"
+    world_folder_deleted: "Папка мира удалена: &e%name%"
+    delete_folder_failed: "&cНе удалось удалить папку мира: %name%"
+    unload_world_failed: "&cНе удалось выгрузить мир: %name%"
+    world_unload_error: "&cОшибка выгрузки мира: %error%"
 
   # Логи ServerCommunication
   servercommunication:
-    # Настройка коммуникации сервера
-    plots_folder_created: "Создана директория плотов: %path%"
-    communication_start_failed: "Не удалось запустить коммуникацию: %error%"
-    connections_close_error: "Ошибка закрытия соединений: %error%"
+    # Настройка связи серверов
+    plots_folder_created: "Создана директория участков: %path%"
+    communication_start_failed: "&cОшибка запуска связи: %error%"
+    connections_close_error: "&cОшибка закрытия соединений: %error%"
 
     # Обработка сетевых сообщений
-    received_message: "Получено сообщение типа: %type%"
-    deserialize_plot_failed: "Не удалось десериализовать данные плота"
-    plot_create_error: "Ошибка обработки PLOT_CREATE: %error%"
-    plot_delete_error: "Ошибка обработки PLOT_DELETE: %error%"
-    deserialize_block_failed: "Не удалось десериализовать данные блока"
-    block_change_error: "Ошибка обработки BLOCK_CHANGE: %error%"
-    request_plot_blocks_error: "Ошибка обработки REQUEST_PLOT_BLOCKS: %error%"
-    plot_blocks_error: "Ошибка обработки PLOT_BLOCKS: %error%"
-    scan_progress_error: "Ошибка обработки PLOT_SCAN_PROGRESS: %error%"
-    scan_complete_error: "Ошибка обработки PLOT_SCAN_COMPLETE: %error%"
-    message_processing_error: "Ошибка обработки сообщения: %error%"
-    messages_sending_error: "Ошибка отправки сообщений: %error%"
+    received_message: "Получено сообщение типа: &e%type%"
+    deserialize_plot_failed: "&cОшибка десериализации данных участка"
+    plot_create_error: "&cОшибка обработки PLOT_CREATE: %error%"
+    plot_delete_error: "&cОшибка обработки PLOT_DELETE: %error%"
+    deserialize_block_failed: "&cОшибка десериализации данных блоков"
+    block_change_error: "&cОшибка обработки BLOCK_CHANGE: %error%"
+    request_plot_blocks_error: "&cОшибка обработки REQUEST_PLOT_BLOCKS: %error%"
+    plot_blocks_error: "&cОшибка обработки PLOT_BLOCKS: %error%"
+    scan_progress_error: "&cОшибка обработки PLOT_SCAN_PROGRESS: %error%"
+    scan_complete_error: "&cОшибка обработки PLOT_SCAN_COMPLETE: %error%"
+    message_processing_error: "&cОшибка обработки сообщения: %error%"
+    messages_sending_error: "&cОшибка отправки сообщений: %error%"
 
-    # Коммуникация основного сервера
-    starting_server: "&bЗапуск коммуникации основного сервера на порту %port%"
-    server_socket_error: "&cОшибка в сокете основного сервера: %error%"
-    server_start_failed: "&cНе удалось запустить основной сервер: %error%"
+    # Связь с основным сервером
+    starting_server: "Запуск связи основного сервера на порту &e%port%"
+    server_socket_error: "&cОшибка сокета основного сервера: %error%"
+    server_start_failed: "&cОшибка запуска основного сервера: %error%"
 
-    # Подключение клиента
-    connecting: "&bПодключение к основному серверу на %ip%:%port%"
-    connection_lost: "&cСоединение с основным сервером потеряно: %error%"
-    connection_failed: "&cНе удалось подключиться к основному серверу: %error%"
+    # Клиентское соединение
+    connecting: "Подключение к основному серверу по адресу &e%ip%&f:&e%port%"
+    connection_lost: "&cПотеряно соединение с основным сервером: %error%"
+    connection_failed: "&cОшибка подключения к основному серверу: %error%"
 
     # Аутентификация
-    auth_failed: "Аутентификация не удалась"
+    auth_failed: "&cОшибка аутентификации"
     auth_success: "Аутентификация успешна"
-    client_disconnected: "&eКлиент отключен: %error%"
+    client_disconnected: "&eКлиент отключён: %error%"
 
-    # Операции с плотами
-    plot_sending: "Отправка создания плота: %json%"
-    plot_serialize_error: "Ошибка сериализации плота для отправки: %error%"
-    block_serialize_error: "Ошибка сериализации данных блока для отправки: %error%"
-    requesting_blocks: "Запрос блоков для плота: %plot%"
+    # Операции с участками
+    plot_sending: "Отправка создания участка: %json%"
+    plot_serialize_error: "&cОшибка сериализации участка для отправки: %error%"
+    block_serialize_error: "&cОшибка сериализации данных блоков для отправки: %error%"
+    requesting_blocks: "Запрос блоков для участка: &e%plot%"
+
+  debug:
+    enabled: "Режим отладки включён - активна подробная запись логов"
+    disabled: "Режим отладки выключен - будут записываться только ошибки и предупреждения"

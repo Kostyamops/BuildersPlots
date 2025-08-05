@@ -6,6 +6,8 @@ import org.bukkit.entity.Player
 
 /**
  * Command to delete a plot
+ * @author Kostyamops
+ * @updated 2025-08-04 03:46:56
  */
 class DeleteCommand(private val plugin: BuildersPlots) : SubCommand {
 
@@ -16,6 +18,20 @@ class DeleteCommand(private val plugin: BuildersPlots) : SubCommand {
         }
 
         val plotName = args[1]
+        val plot = plugin.plotManager.getPlot(plotName)
+
+        if (plot == null) {
+            plugin.localizationManager.sendMessage(player, "messages.buildersplotscommand.plot_not_found",
+                "%name%" to plotName)
+            return
+        }
+
+        // Check if player has permission to delete this plot
+        if (!plot.isCreator(player) && !player.hasPermission("buildersplots.admin.delete.any")) {
+            plugin.localizationManager.sendMessage(player, "messages.buildersplotscommand.not_owner_delete")
+            return
+        }
+
         if (plugin.plotManager.deletePlot(plotName)) {
             plugin.localizationManager.sendMessage(player, "messages.buildersplotscommand.delete_success",
                 "%name%" to plotName)

@@ -34,7 +34,7 @@ permissions:
     description: Allows teleporting to plots
     default: true
 
-  buildersplots.command.member:
+  buildersplots.command.members:
     description: Allows managing plot members
     default: true
 
@@ -42,7 +42,7 @@ permissions:
     description: Allows deleting any plot
     default: op
 
-  buildersplots.admin.member.manage:
+  buildersplots.admin.members.manage:
     description: Allows managing members of any plot
     default: op
 

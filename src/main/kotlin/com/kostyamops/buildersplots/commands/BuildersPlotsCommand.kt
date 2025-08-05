@@ -25,6 +25,7 @@ class BuildersPlotsCommand(private val plugin: BuildersPlots) : CommandExecutor,
         registerSubCommand(DeleteCommand(plugin))
         registerSubCommand(TeleportCommand(plugin))
         registerSubCommand(LeaveCommand(plugin))
+        registerSubCommand(MembersCommand(plugin))
     }
 
     private fun registerSubCommand(subCommand: SubCommand) {
